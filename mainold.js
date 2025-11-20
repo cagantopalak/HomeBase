@@ -208,11 +208,8 @@ if (savedTileColor) {
 }
 
 // Apply saved tile border width (default to 2px)
-const _savedTileBorderWidth = localStorage.getItem('tileBorderWidth') || '0px';
+const _savedTileBorderWidth = localStorage.getItem('tileBorderWidth') || '2px';
 document.documentElement.style.setProperty('--tile-border-width', _savedTileBorderWidth);
-// Set folder icon border width: 0px if tile border is 0px, otherwise 1px
-const _folderIconBorderWidth = (_savedTileBorderWidth === '0px') ? '0px' : '1px';
-document.documentElement.style.setProperty('--folder-icon-border-width', _folderIconBorderWidth);
 
 // Search bar removed: no DOM element to toggle. Just apply placement rules.
 applyTilePlacement();
@@ -803,10 +800,10 @@ function buildFolderTile(folder, index) {
     iconDiv.appendChild(img);
     iconGrid.appendChild(iconDiv);
   });
-
   while (iconGrid.children.length < 4) {
     const iconDiv = document.createElement('div');
     iconDiv.className = 'folder-icon';
+    // ensure placeholder boxes are non-interactive and follow folder color if present
     iconDiv.style.pointerEvents = 'none';
     iconDiv.style.cursor = 'default';
     iconDiv.style.backdropFilter = 'none';
@@ -936,7 +933,7 @@ function buildFolderTile(folder, index) {
     isDragging = false;
     dragStartIndex = null;
     dragCurrentIndex = null;
-    dragOverStartTime = nulls;
+    dragOverStartTime = null;
     // Ensure tiles are visible after drag finishes
     document.querySelectorAll('.tile').forEach(t => {
       t.classList.remove('dragging', 'moving', 'placeholder');
@@ -2286,12 +2283,8 @@ setupCustomDropdown('clockFontFamilyDropdown', 'clockFontFamilySelect', (value) 
 });
 
 // Setup Tile Border Width Dropdown
-// Setup Tile Border Width Dropdown
 setupCustomDropdown('tileBorderWidthDropdown', 'tileBorderWidthSelect', (value) => {
   document.documentElement.style.setProperty('--tile-border-width', value);
-  // Update folder icon border width preview: 0px -> 0px, others -> 1px
-  const iconWidth = (value === '0px') ? '0px' : '1px';
-  document.documentElement.style.setProperty('--folder-icon-border-width', iconWidth);
 });
 
 // Setup Tile Placement Dropdown
@@ -2660,12 +2653,8 @@ importInput.addEventListener('change', (e) => {
 
               // Persist tileBorderWidth and tilePlacement if present and other keys
               if (importedData.settings.tileBorderWidth) {
-                const val = importedData.settings.tileBorderWidth;
-                localStorage.setItem('tileBorderWidth', val);
-                document.documentElement.style.setProperty('--tile-border-width', val);
-                // Update folder icon border width preview: 0px -> 0px, others -> 1px
-                const iconWidth = (val === '0px') ? '0px' : '1px';
-                document.documentElement.style.setProperty('--folder-icon-border-width', iconWidth);
+                localStorage.setItem('tileBorderWidth', importedData.settings.tileBorderWidth);
+                document.documentElement.style.setProperty('--tile-border-width', importedData.settings.tileBorderWidth);
               }
               if (importedData.settings.tilePlacement) {
                 localStorage.setItem('tilePlacement', importedData.settings.tilePlacement);
@@ -3098,6 +3087,51 @@ function showPinModal() {
   }
 }
 
+// Add these variables at the top with other modal variables
+const contactBtn = document.getElementById('contactBtn');
+const contactModal = document.getElementById('contactModal');
+const copyEmailBtn = document.getElementById('copyEmailBtn');
+const closeContactModalBtn = document.getElementById('closeContactModalBtn');
+const contactEmail = document.getElementById('contactEmail');
+
+// Replace 'example@example.com' with your actual email
+const yourEmail = 'cagantshomepage@gmail.com';
+contactEmail.textContent = yourEmail;
+
+// Add these event listeners with the others
+contactBtn.addEventListener('click', () => {
+  closeEditModal();
+  contactModal.style.display = 'flex';
+  document.body.classList.add('modal-open');
+});
+
+copyEmailBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(yourEmail).then(() => {
+    showCustomAlert('Email copied to clipboard!');
+    contactModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+  }).catch(err => {
+    showCustomAlert('Failed to copy email: ' + err);
+  });
+});
+
+closeContactModalBtn.addEventListener('click', () => {
+  contactModal.style.display = 'none';
+  document.body.classList.remove('modal-open');
+});
+
+// Update the escape key handler to also close contact modal
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeEditModal();
+    resetConfirmModal.style.display = 'none';
+    exportConfirmModal.style.display = 'none'; // Also close export modal
+    contactModal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    closeFolder(); // Also close folder bubble
+  }
+});
+
 /* ---------- FIRST-TIME USER WELCOME MODAL ---------- */
 function showWelcomeModal() {
   const welcomeModal = document.getElementById('welcomeModal');
@@ -3180,113 +3214,4 @@ document.addEventListener('DOMContentLoaded', () => {
   content.querySelectorAll('input,select,textarea').forEach(el => {
     el.addEventListener('focus', () => toggleClockSettings(true));
   });
-});
-
-// Add these variables at the top with other modal variables
-document.addEventListener('DOMContentLoaded', () => {
-  const contactBtn = document.getElementById('contactBtn');
-  const contactModal = document.getElementById('contactModal');
-  const copyEmailBtn = document.getElementById('copyEmailBtn');
-  const closeContactModalBtn = document.getElementById('closeContactModalBtn');
-  const contactEmail = document.getElementById('contactEmail');
-
-  // Replace 'example@example.com' with your actual email
-  const yourEmail = 'cagantshomepage@gmail.com';
-  if (contactEmail) {
-    contactEmail.textContent = yourEmail;
-  }
-
-  // Add these event listeners with the others
-  if (contactBtn) {
-    contactBtn.addEventListener('click', () => {
-      closeEditModal();
-      if (contactModal) {
-        contactModal.style.display = 'flex';
-        document.body.classList.add('modal-open');
-      }
-    });
-  }
-
-  if (copyEmailBtn) {
-    copyEmailBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(yourEmail).then(() => {
-        showCustomAlert('Email copied to clipboard!');
-        if (contactModal) {
-          contactModal.style.display = 'none';
-          document.body.classList.remove('modal-open');
-        }
-      }).catch(err => {
-        showCustomAlert('Failed to copy email: ' + err);
-      });
-    });
-  }
-
-  if (closeContactModalBtn) {
-    closeContactModalBtn.addEventListener('click', () => {
-      if (contactModal) {
-        contactModal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-      }
-    });
-  }
-
-  const mailBtn = document.getElementById('mailBtn');
-  if (mailBtn) {
-    mailBtn.addEventListener('click', () => {
-      window.location.href = 'mailto:cagantshomepage@gmail.com';
-    });
-  }
-});
-
-// Update the escape key handler to also close contact modal
-window.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    closeEditModal();
-    const resetConfirmModal = document.getElementById('resetConfirmModal');
-    const exportConfirmModal = document.getElementById('exportConfirmModal');
-    const contactModal = document.getElementById('contactModal');
-
-    if (resetConfirmModal) resetConfirmModal.style.display = 'none';
-    if (exportConfirmModal) exportConfirmModal.style.display = 'none'; // Also close export modal
-    if (contactModal) contactModal.style.display = 'none';
-    document.body.classList.remove('modal-open');
-    closeFolder(); // Also close folder bubble
-  }
-});
-
-/* ---------- THEME ICON UPDATE LOGIC ---------- */
-function updateBrowserIcon(theme) {
-  const isDark = theme === 'dark';
-  const suffix = isDark ? 'white' : 'dark';
-  const path = {
-    16: `icons/icon16${suffix}.png`,
-    32: `icons/icon32${suffix}.png`
-  };
-
-  try {
-    if (typeof chrome !== 'undefined' && chrome.action) {
-      chrome.action.setIcon({ path });
-    } else if (typeof browser !== 'undefined' && browser.browserAction) {
-      browser.browserAction.setIcon({ path });
-    } else if (typeof chrome !== 'undefined' && chrome.browserAction) {
-      chrome.browserAction.setIcon({ path });
-    }
-  } catch (err) {
-    console.warn('Could not set icon from main.js', err);
-  }
-
-  // Notify background script (for Chrome persistence)
-  try {
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-      chrome.runtime.sendMessage({ type: 'THEME_CHANGED', theme });
-    }
-  } catch (e) { }
-}
-
-if (window.matchMedia) {
-  const media = window.matchMedia('(prefers-color-scheme: dark)');
-  const handleTheme = (e) => updateBrowserIcon(e.matches ? 'dark' : 'light');
-  handleTheme(media);
-  media.addEventListener('change', handleTheme);
-}
-
+})
