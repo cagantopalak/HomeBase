@@ -1,0 +1,38 @@
+{
+    "manifest_version": 2,
+    "name": "HomeBase",
+    "version": "6.1",
+    "description": "Loads HomeBase as the new tab and homepage.",
+    "chrome_url_overrides": {
+        "newtab": "newtab.html"
+    },
+    "chrome_settings_overrides": {
+        "homepage": "newtab.html"
+    },
+    "permissions": [
+        "activeTab",
+        "tabs",
+        "storage"
+    ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "browser_action": {
+        "default_icon": {
+            "16": "icons/icon16dark.png",
+            "32": "icons/icon32dark.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        },
+        "default_title": "Add to New Tab",
+        "default_popup": "popup.html"
+    },
+    "content_security_policy": "script-src 'self'; object-src 'self'",
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "cagantshomepage@gmail.com"
+        }
+    }
+}

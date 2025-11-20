@@ -1,0 +1,28 @@
+{
+    "manifest_version": 3,
+    "name": "HomeBase",
+    "version": "1.0",
+    "description": "Loads HomeBase as the new tab and homepage.",
+    "chrome_url_overrides": {
+        "newtab": "newtab.html"
+    },
+    "permissions": [
+        "storage"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_icon": {
+            "16": "icons/icon16dark.png",
+            "32": "icons/icon32dark.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        },
+        "default_title": "Add to New Tab",
+        "default_popup": "popup.html"
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    }
+}

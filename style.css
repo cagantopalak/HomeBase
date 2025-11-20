@@ -1,0 +1,1661 @@
+/* === CSS VARIABLES === */
+:root {
+  --tile-label-color: #FFFFFF;
+  --tile-bg-color: rgba(255, 255, 255, 0.4);
+  --tile-border-color: rgba(255, 255, 255, 0.5);
+  --tile-border-width: 2px;
+  --tile-label-font-family: 'Roboto', sans-serif;
+
+  /* REWRITTEN CLOCK CSS VARIABLES STARTS HERE */
+  --clock-display-color: #FFFFFF;
+  --clock-display-font-family: 'Climate Crisis', cursive;
+  --clock-font-size: 4em;
+  --clock-position: left;
+  /* 'left' or 'right' - JS will add classes for positioning */
+  /* REWRITTEN CLOCK CSS VARIABLES ENDS HERE */
+
+  /* New: Modal Specific Variables for consistency */
+  --modal-bg-dark: rgba(28, 28, 30, 0.75);
+  --modal-border-dark: rgba(255, 255, 255, 0.125);
+  --modal-text-color-dark: white;
+  --setting-group-bg-dark: rgba(255, 255, 255, 0.08);
+  --setting-group-border-dark: rgba(255, 255, 255, 0.1);
+  --setting-label-color-dark: rgba(255, 255, 255, 0.9);
+  --input-bg-dark: rgba(255, 255, 255, 0.1);
+  --input-border-dark: rgba(255, 255, 255, 0.2);
+  --placeholder-color-dark: rgba(255, 255, 255, 0.6);
+  --toggle-off-bg: rgba(255, 255, 255, 0.2);
+  --toggle-on-bg: #6366f1;
+  --button-primary-bg: #007BFF;
+  --button-primary-hover: #0069d9;
+  --button-secondary-bg: rgba(255, 255, 255, 0.15);
+  --button-secondary-hover: rgba(255, 255, 255, 0.25);
+  --button-border-light: rgba(255, 255, 255, 0.2);
+  --button-common-bg: rgba(255, 255, 255, 0.1);
+  --button-common-border: rgba(255, 255, 255, 0.3);
+  --button-common-hover: rgba(255, 255, 255, 0.2);
+  --button-common-border-hover: rgba(255, 255, 255, 0.4);
+  --button-reset-bg: rgba(255, 59, 48, 0.2);
+  --button-reset-border: rgba(255, 59, 48, 0.4);
+  --button-reset-color: #ff8a85;
+  --button-reset-hover-bg: rgba(255, 59, 48, 0.4);
+  --button-reset-hover-border: rgba(255, 59, 48, 0.6);
+
+  /* New: Export Specific Button Colors (can be similar to primary/secondary or distinct) */
+  --button-export-bg: rgba(0, 128, 0, 0.2);
+  /* Greenish */
+  --button-export-border: rgba(0, 128, 0, 0.4);
+  --button-export-color: #90ee90;
+  --button-export-hover-bg: rgba(0, 128, 0, 0.4);
+  --button-export-hover-border: rgba(0, 128, 0, 0.6);
+}
+
+
+/* === BASE STYLES === */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Set a consistent root font-size so rem units compute consistently */
+html {
+  font-size: 16px;
+}
+
+body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 50px;
+  height: 100vh;
+  transition: filter 0.3s ease;
+}
+
+body.modal-open>*:not(.modal) {
+  filter: brightness(0.7) blur(5px);
+  pointer-events: none;
+}
+
+/* When a modal is open, prevent page-level scrolling so only the modal scrolls internally */
+body.modal-open {
+  /* Prevent page-level scrolling while a modal is active.
+     Using position:fixed + inset:0 ensures the viewport is locked
+     and the modal (which is fixed) can scroll internally via its
+     own overflow settings. This avoids the page scrollbar appearing
+     on some browsers where html element still scrolls. */
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  overflow: hidden;
+  /* Hide page scrollbars while modal is active */
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(6, 180px);
+  gap: 15px 20px;
+  justify-content: center;
+  padding: 40px;
+  border-radius: 16px;
+}
+
+/* === TILE STYLES === */
+.tile {
+  width: 180px;
+  height: 100px;
+  border-radius: 16px;
+  background: var(--tile-bg-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  transition: 0.3s;
+  position: relative;
+  border: var(--tile-border-width) solid var(--tile-border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  will-change: transform, box-shadow;
+  transition: transform 0.18s cubic-bezier(.4, 2, .6, 1), box-shadow 0.18s;
+}
+
+.tile.dragging {
+  transition: none;
+  z-index: 100;
+  opacity: 0.95;
+  /* keep the dragged tile visible but slightly emphasized */
+  transform: scale(1.02);
+  cursor: grabbing;
+}
+
+.tile.placeholder {
+  /* lightweight placeholder used where the dragged tile used to be.
+     Using opacity keeps layout visible (no disappearing) while showing
+     it's an empty slot. pointer-events none avoids accidental interactions. */
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+  /* Keep size but hide contents (icon/link) */
+  color: transparent !important;
+}
+
+/* Hide images/anchors inside a placeholder tile while preserving layout */
+.tile.placeholder img,
+.tile.placeholder a,
+.tile.placeholder .folder-icon,
+.tile.placeholder .folder-icon img {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.tile.moving {
+  transform: translateX(var(--move-x)) translateY(var(--move-y));
+}
+
+.tile img {
+  width: 48px;
+  height: 48px;
+  margin: 0;
+}
+
+.tile:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.tile-label {
+  display: block;
+  text-align: center;
+  margin-top: 6px;
+  font-size: 13px;
+  font-family: var(--tile-label-font-family);
+  color: var(--tile-label-color);
+}
+
+.add-tile {
+  font-size: 40px;
+  line-height: 100px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* === MODAL STYLES === */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+}
+
+/* === ADD/EDIT SITE MODAL === */
+#siteModal .modal-content {
+  background: var(--modal-bg-dark);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(800px, 90vw);
+  /* Adjusted to match settings modal width */
+  max-height: 85vh;
+  /* Added to match settings modal */
+  overflow-y: auto;
+  /* Added to match settings modal */
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  /* Added to match settings modal */
+  animation: modalFadeIn 0.4s ease-out;
+  /* Added to match settings modal */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: var(--modal-text-color-dark);
+}
+
+#siteModal h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+#siteModal input {
+  background: var(--input-bg-dark);
+  border: 1px solid var(--input-border-dark);
+  color: var(--modal-text-color-dark);
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+
+#siteModal input::placeholder {
+  color: var(--placeholder-color-dark);
+}
+
+#siteModal .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#siteModal button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+
+.input-group input {
+  background: var(--input-bg-dark);
+  border: 1px solid var(--input-border-dark);
+  color: var(--modal-text-color-dark);
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+
+/* === NEW: FOLDER EDIT MODAL === */
+/* This mirrors the #siteModal styles for a consistent look */
+#folderModal .modal-content {
+  background: var(--modal-bg-dark);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(800px, 90vw);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: var(--modal-text-color-dark);
+}
+
+#folderModal h2 {
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+
+
+#folderModal input {
+  background: var(--input-bg-dark);
+  border: 1px solid var(--input-border-dark);
+  color: var(--modal-text-color-dark);
+  padding: 12px 15px;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+
+#folderModal input::placeholder {
+  color: var(--placeholder-color-dark);
+}
+
+#folderModal .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* The primary and secondary button classes you've already applied will handle the button
+
+/* === SETTINGS & GENERIC MODAL CONTENT STYLES === */
+#editModal .modal-content,
+.modal .modal-content {
+  /* Added .modal .modal-content here */
+  background: var(--modal-bg-dark);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(800px, 90vw);
+  /* Ensure modal content scrolls internally instead of the body */
+  max-height: 95vh;
+  overflow-y: auto;
+  /* Modal will scroll internally if content is too tall */
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.4s ease-out;
+  color: var(--modal-text-color-dark);
+  /* Force consistent sizing across browsers (Chrome vs Firefox differences) */
+  font-size: 1rem;
+  /* fixed base size inside modals */
+  line-height: 1.45;
+  /* improves readability and keeps visual parity */
+  -webkit-text-size-adjust: 100%;
+  /* prevent browser text auto-adjust on some engines */
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  /* slightly better rendering in Chrome */
+  -moz-osx-font-smoothing: grayscale;
+  /* better rendering in Firefox/OSX */
+}
+
+/* pinModal uses the generic .modal .modal-content rules above for consistent styling.
+   Add centering rules so all elements appear aligned to the middle. */
+
+#pinModal .modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+#pinModal .pin-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  color: #ffffff;
+  margin: 12px 0;
+}
+
+#pinModal h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* === UNIFIED RANGE SLIDER STYLES (Chrome / Firefox) ===
+   Make the sound slider look consistent across WebKit and Gecko engines.
+   Targets: #soundVolumeInput and any input[type=range] in the UI.
+*/
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  /* container height, track is smaller */
+  background: transparent;
+  margin: 6px 0;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--input-border-dark);
+  border-radius: 6px;
+  border: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;
+  /* vertically center the thumb over the track */
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.06);
+}
+
+/* Firefox (Gecko) */
+input[type="range"]::-moz-range-track {
+  height: 6px;
+  background: var(--input-border-dark);
+  border-radius: 6px;
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 6px;
+  background: var(--button-primary-bg);
+  border-radius: 6px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+/* IE / Edge legacy */
+input[type="range"]::-ms-track {
+  height: 6px;
+  background: transparent;
+  border-color: transparent;
+  color: transparent;
+}
+
+input[type="range"]::-ms-fill-lower {
+  background: var(--button-primary-bg);
+  border-radius: 6px;
+}
+
+input[type="range"]::-ms-fill-upper {
+  background: var(--input-border-dark);
+  border-radius: 6px;
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+
+#pinModal p {
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 12px 0;
+}
+
+/* Center the ordered list container and items */
+#pinModal ol {
+  margin: 10px auto;
+  padding-left: 0;
+  max-width: 420px;
+  list-style-position: inside;
+  text-align: center;
+}
+
+#pinModal ol li {
+  text-align: center;
+}
+
+/* Center the modal's button group */
+#pinModal .modal-content .button-group {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* Slightly larger primary button in the pin modal */
+#pinModal .primary-button {
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+#pinModal .secondary-button {
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.setting-group {
+  /* Luxurious card styling applied globally to settings groups */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  border-radius: 14px;
+  padding: 18px 18px 16px 18px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  position: relative;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 200ms ease;
+}
+
+
+.setting-group-title {
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: rgba(30, 30, 32, 0.85);
+  padding: 4px 10px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  /* ===== Slim, modern scrollbars (WebKit + Firefox) ===== */
+  /* Apply to scrollable containers (modal content, general body when scrollable) */
+  /* WebKit-based browsers (Chrome, Edge, Safari) */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Slim, light-grey scrollbars for modal content and setting groups */
+/* WebKit (Chrome, Edge, Safari) */
+.modal .modal-content::-webkit-scrollbar,
+.setting-group::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.modal .modal-content::-webkit-scrollbar-track,
+.setting-group::-webkit-scrollbar-track {
+  background: transparent;
+  /* keep track subtle against modal */
+}
+
+.modal .modal-content::-webkit-scrollbar-thumb,
+.setting-group::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.12);
+  /* very light grey */
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.modal .modal-content::-webkit-scrollbar-thumb:hover,
+.setting-group::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Firefox */
+.modal .modal-content,
+.setting-group {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  /* thumb track */
+}
+
+/* Provide a slightly more visible scrollbar for windows with dense content */
+.modal .modal-content.dense-scroll::-webkit-scrollbar-thumb,
+.setting-group.dense-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+
+.setting-group label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--setting-label-color-dark);
+  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 10px;
+  transition: background 0.2s ease, transform 160ms ease;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.setting-group label:hover {
+  /* Keep label visually stable on hover */
+  background: rgba(255, 255, 255, 0.02);
+  transform: none;
+}
+
+.setting-group input[type="color"] {
+  width: 44px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  background: transparent;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+/* Prevent reset buttons inside setting labels from expanding to fill space
+   and add a small gap between the label text and the color input so the
+   Reset button stays the same compact size used elsewhere (e.g., background reset). */
+.setting-group label .reset-button,
+.setting-group label .secondary-button,
+.setting-group label .browse-button-color {
+  flex: 0 0 auto;
+  /* don't grow or shrink to fill available space */
+  margin-left: 0;
+  /* do not add extra left gap — color input will push these to the right */
+  padding: 8px 10px;
+  /* slightly smaller padding to match other small buttons */
+  min-width: 72px;
+  /* keep a consistent compact width */
+}
+
+.setting-group label input[type="color"] {
+  margin-left: auto;
+  /* push the color picker (and following button) to the right */
+  margin-right: 6px;
+  /* small gap between color picker and the reset button */
+}
+
+/* Sound slider specific width */
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* Keep the input element sized/layout-only for the sound slider and
+   rely on the unified input[type=range] pseudo-element rules above to
+   style the track/thumb consistently across browsers. */
+#soundVolumeInput {
+  flex-grow: 1;
+  width: 100%;
+  /* full width of parent */
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  /* visual styling is handled by pseudo-elements */
+  outline: none;
+  cursor: pointer;
+  height: 28px;
+  /* container height to allow vertical centering */
+}
+
+
+.setting-group input[type="range"] {
+  /* This rule applies to other range inputs (e.g., clock size). Keep layout but
+     avoid forcing a background so the cross-browser pseudo-element styling
+     controls track/fill/appearance consistently. */
+  width: 120px;
+  /* Default width for other range inputs */
+  cursor: pointer;
+  appearance: none;
+  height: 8px;
+  background: transparent;
+  border-radius: 4px;
+  outline: none;
+  transition: background 0.2s ease;
+}
+
+.setting-group input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--toggle-on-bg);
+  cursor: grab;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+
+.setting-group input[type="checkbox"] {
+  width: 42px;
+  height: 24px;
+  position: relative;
+  appearance: none;
+  background: var(--toggle-off-bg);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.setting-group input[type="checkbox"]:checked {
+  background: var(--toggle-on-bg);
+}
+
+.setting-group input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.setting-group input[type="checkbox"]:checked::after {
+  transform: translateX(18px);
+}
+
+.setting-group select {
+  background: var(--input-bg-dark);
+  border: 1px solid var(--input-border-dark);
+  color: var(--modal-text-color-dark);
+  padding: 8px 12px;
+  border-radius: 8px;
+  min-width: 120px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 20px;
+}
+
+select option {
+  background: #2c2c2e;
+  /* Darker background for options */
+  color: white;
+  padding: 10px;
+}
+
+/* Enhanced Select Styling */
+.setting-group select {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  padding: 10px 36px 10px 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+}
+
+.setting-group select:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.setting-group select:focus {
+  outline: none;
+  border-color: var(--button-primary-bg);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+
+
+.setting-group .button-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.button-row button {
+  flex-grow: 1;
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.button-row button:hover {
+
+  transform: translateY(-1px);
+
+}
+
+.reset-button {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  background: rgba(237, 0, 0, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(129, 41, 41, 0.3);
+}
+
+.choice-button:hover,
+.reset-button:hover {
+  background: rgba(237, 0, 0, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(237, 0, 0, 0.6);
+}
+
+.export-buttons {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  background: rgba(75, 255, 108, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+}
+
+.export-buttons:hover {
+  background: rgba(75, 255, 108, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
+}
+
+
+
+/* Style for file input and its associated button */
+.background-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* New style for the browse button color */
+.browse-button-color {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  background: var(--toggle-on-bg);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 72, 129, 0.3);
+}
+
+.browse-button-color:hover {
+  background: var(--toggle-on-bg);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgb(93, 87, 255);
+}
+
+
+
+/* GLOBAL BUTTON STYLES FOR .button-group IN MODALS */
+/* Apply to buttons within any .modal .modal-content .button-group */
+.modal .modal-content .button-group button {
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+
+:root {
+  --primary: #6366f1;
+  --primary-hover: #6366f1;
+  --background: rgba(23, 23, 25, 0.98);
+  --surface: rgba(39, 39, 42, 0.8);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.6);
+}
+
+.modal .modal-content .button-group .primary-button {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.modal .modal-content .button-group .primary-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+}
+
+.modal .modal-content .button-group .secondary-button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.modal .modal-content .button-group .secondary-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+
+/* Settings modal save/cancel buttons specific positioning */
+#editModal .button-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  width: 100%;
+}
+
+#editModal .left-buttons {
+  margin-right: auto;
+  /* Pushes right-buttons to the far right */
+}
+
+#editModal .right-buttons {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  /* Ensures Save/Cancel stay on the right */
+}
+
+/* === CONTEXT MENU === */
+.context-menu {
+  position: fixed;
+  display: none;
+  background: #2c2c2e;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  padding: 6px;
+  min-width: 140px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.context-menu button {
+  background: none;
+  border: none;
+  padding: 8px 14px;
+  font-size: 14px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 5px;
+}
+
+.context-menu button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+
+/* === SEARCH BAR === */
+/* Search bar removed from markup; related styles have been removed. */
+
+/* Search bar styles removed (search bar removed from HTML). */
+
+
+/* REWRITTEN CLOCK CSS STARTS HERE */
+#new-digital-clock {
+  position: fixed;
+  bottom: 20px;
+  /* left/right handled via helper classes applied by JS */
+  color: var(--clock-display-color);
+  font-family: var(--clock-display-font-family);
+  font-size: var(--clock-font-size);
+  z-index: 1000;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+  display: flex;
+  /* Ensure it's a flex container for centering text */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Helper classes applied by JS to position the clock */
+.clock-pos-left {
+  left: 20px;
+  right: auto;
+}
+
+.clock-pos-right {
+  right: 20px;
+  left: auto;
+}
+
+/* REWRITTEN CLOCK CSS ENDS HERE */
+
+/* Welcome Modal Specific Styles */
+#welcomeModal .modal-content {
+  background: var(--modal-bg-dark);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(800px, 90vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: var(--modal-text-color-dark);
+}
+
+#welcomeModal h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+#welcomeModal p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+#welcomeModal ul {
+  list-style-type: disc;
+  margin-left: 20px;
+  margin-bottom: 15px;
+  padding: 0;
+}
+
+#welcomeModal ul li {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+#welcomeModal strong {
+  color: var(--button-primary-bg);
+  /* Highlight key terms */
+}
+
+#welcomeModal .button-group {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Placeholder for specific icons/text within the guide */
+.add-tile-text {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.gear-icon-placeholder {
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+
+/* Contact modal specific styles */
+#contactModal .modal-content {
+  max-width: 400px;
+  text-align: center;
+}
+
+.contact-email {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-family: 'Roboto';
+  word-break: break-all;
+}
+
+#contactModal .button-group {
+  justify-content: center;
+  gap: 10px;
+}
+
+
+/* === FOLDER STYLES === */
+.folder-tile {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.folder-tile:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.folder-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  width: 100%;
+  height: 100%;
+  gap: 4px;
+  padding: 12px;
+}
+
+
+
+/* Replaced vendor-specific rules — use neutral styling for the color input */
+
+
+
+
+
+.folder-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-bg-color);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  transition: all 0.2s ease;
+  border-width: var(--folder-icon-border-width, 1px);
+  border-style: solid;
+  border-color: var(--tile-border-color);
+  pointer-events: none;
+  cursor: default;
+}
+
+
+
+.folder-icon img {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  pointer-events: none;
+}
+
+.folder-bubble {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--tile-bg-color);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 24px;
+  padding: 0;
+  z-index: 2000;
+  display: none;
+  width: 80%;
+  max-width: 900px;
+  max-height: 80vh;
+  overflow: visible;
+  /* Allow header to be seen outside */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+
+.folder-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 70px);
+}
+
+.tile.folder-hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 0 0 4px var(--button-primary-bg, #6366f1) !important;
+  z-index: 100;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.folder-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1999;
+  display: none;
+  backdrop-filter: blur(5px);
+}
+
+.folder-bubble .container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  gap: 15px;
+  justify-content: center;
+  padding: 0;
+}
+
+.folder-bubble .tile {
+  width: 180px;
+  height: 100px;
+  margin: 0;
+}
+
+.folder-tiles-container {
+  /* Use fixed column width so tiles keep their size and can be centered
+     Use a scrollable container with a limited max-height so overflow
+     shows a thin native scrollbar (no -webkit pseudo selectors). */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  justify-content: center;
+  /* center columns when there's leftover space */
+  justify-items: center;
+  /* center tiles inside their grid cells */
+  gap: 16px 40px;
+  padding: 16px 8px;
+  /* slightly smaller padding to make bubble compact */
+  width: 100%;
+  height: auto;
+  max-height: calc(80vh - 140px);
+  /* keep some space for bubble chrome and header */
+  overflow: auto;
+  /* enable scrolling when there are many tiles */
+  -webkit-overflow-scrolling: touch;
+  /* smooth scrolling on mobile (no scrollbar styling) */
+  scrollbar-width: thin;
+  /* Firefox: thin scrollbar */
+  scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+  /* subtle thumb on transparent track */
+}
+
+/* For browsers that support newer scrollbar properties, keep things minimal
+   and avoid -webkit pseudo selectors as requested. These rules try to keep
+   the scrollbar visually thin and unobtrusive while remaining functional. */
+@supports (scrollbar-width: thin) {
+  .folder-tiles-container {
+    scrollbar-width: thin;
+  }
+}
+
+.tile.dragging {
+  opacity: 0.3;
+  z-index: 100;
+}
+
+.tile.moving {
+  outline: 2px dashed #fff;
+  box-shadow: 0 0 16px 2px #8a85ff;
+  transition: outline 0.2s, box-shadow 0.2s;
+}
+
+.tile.folder-tile.folder-hover {
+  outline: 3px solid #8a85ff;
+  box-shadow: 0 0 20px 4px #8a85ff;
+  transition: outline 0.2s, box-shadow 0.2s;
+}
+
+/* === Benim Düzenlemem === */
+
+/* === BUTTON STYLES === */
+.Save-button {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(75, 255, 108, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+}
+
+.Save-button:hover {
+  background: rgba(75, 255, 108, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
+}
+
+.Cancel-button {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.Cancel-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.contact-button {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(108, 99, 255, 0.3);
+  color: #8a85ff;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+}
+
+.contact-button:hover {
+  background: rgba(108, 99, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(108, 99, 255, 0.6);
+}
+
+#siteModal #saveSite {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(75, 255, 108, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+
+}
+
+#siteModal #saveSite:hover {
+  background: rgba(75, 255, 108, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
+}
+
+#siteModal #cancelSite {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+#siteModal #cancelSite:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+#folderModal #saveFolderBtn {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(75, 255, 108, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+}
+
+#folderModal #saveFolderBtn:hover {
+  background: rgba(75, 255, 108, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
+}
+
+#folderModal #cancelFolderBtn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+#folderModal #cancelFolderBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+/* Display options: ensure three "capsules" line up and match other setting label styles */
+.display-options-row {
+  grid-column: 1 / -1;
+  /* span full width of setting-group */
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.display-options-row label {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--setting-label-color-dark);
+}
+
+/* Make select match visual weight of inputs */
+.display-options-row select {
+  background: var(--input-bg-dark);
+  border: 1px solid var(--input-border-dark);
+  color: var(--modal-text-color-dark);
+  padding: 6px 10px;
+  border-radius: 6px;
+  min-width: 100px;
+}
+
+/* Keep checkboxes visually aligned inside capsule */
+.display-options-row input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* === Collapsible Settings === */
+.collapsible-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 10px;
+}
+
+.collapsible-arrow {
+  transition: transform 0.3s ease;
+}
+
+.collapsible-content {
+  /* start closed using max-height and opacity for smooth animation */
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding-top: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  position: relative;
+  transition: max-height 320ms cubic-bezier(.2, .9, .2, 1), opacity 260ms ease, padding-top 260ms ease, overflow 0s 0s;
+}
+
+.setting-group.open .collapsible-content {
+  max-height: 420px;
+  /* large enough to show the options */
+  opacity: 1;
+  padding-top: 10px;
+  overflow: visible;
+  transition: max-height 320ms cubic-bezier(.2, .9, .2, 1), opacity 260ms ease, padding-top 260ms ease, overflow 0s 0.32s;
+}
+
+.setting-group.open .collapsible-arrow {
+  transform: rotate(180deg);
+}
+
+.setting-group .collapsible-header .setting-group-title {
+  position: static;
+  top: auto;
+  left: auto;
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+  border-radius: 0;
+  border: none;
+}
+
+/* Luxurious styles specifically for the clock settings group */
+#clockSettingsGroup {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  cursor: pointer;
+  /* make whole group clickable */
+}
+
+#clockSettingsGroup:hover {
+  /* No visual change on hover per user preference */
+  transform: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+#clockSettingsGroup .collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px;
+}
+
+#clockSettingsGroup .collapsible-header span:first-child {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.collapsible-arrow {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transform-origin: center;
+  transition: transform 280ms cubic-bezier(.2, .9, .2, 1), color 180ms;
+}
+
+.setting-group.open .collapsible-arrow {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+/* Make sure inputs inside are interactive even though the group is clickable */
+#clockSettingsGroup .collapsible-content * {
+  cursor: auto;
+}
+
+/* === CUSTOM DROPDOWN STYLES === */
+.custom-dropdown-label {
+  align-items: center !important;
+  /* Align label text to middle */
+}
+
+.custom-dropdown {
+  position: relative;
+  width: 130px;
+  /* Fixed width for consistency */
+  font-family: 'Inter', sans-serif;
+  user-select: none;
+}
+
+.dropdown-selected {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px 10px;
+
+  color: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.dropdown-selected:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dropdown-selected:focus {
+  outline: none;
+  border-color: var(--button-primary-bg);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.dropdown-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+}
+
+.custom-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-options {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: rgba(30, 30, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.custom-dropdown.open .dropdown-options {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.dropdown-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dropdown-option.selected {
+  background: var(--button-primary-bg);
+  color: white;
+}
+
+/* Scrollbar for dropdown */
+.dropdown-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Add to New Tab</title>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --background: rgba(23, 23, 25, 0.98);
+      --surface: rgba(39, 39, 42, 0.8);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: rgba(255, 255, 255, 0.95);
+      --text-secondary: rgba(255, 255, 255, 0.6);
+    }
+
+    html, body {
+      width: 320px;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+    }
+
+    body {
+      padding: 20px;
+      box-sizing: border-box;
+      /* FIX: Explicitly set a base font size for consistency */
+      font-size: 16px;
+    }
+
+    h2 {
+      text-align: center;
+      margin: 0 0 20px 0;
+      font-weight: 600;
+      font-size: 1.2em;
+      color: var(--primary);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85em;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      box-sizing: border-box;
+      font-size: 0.95em;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Make selects match the input styling */
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      padding-right: 36px; /* space for custom arrow */
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      box-sizing: border-box;
+      font-size: 0.95em;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 12px) center;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      font-size: 0.95em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    #popupSaveSite {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+    }
+
+    #popupSaveSite:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+    }
+
+    #popupSaveSite:active {
+      transform: translateY(0);
+    }
+
+    #popupCancelSite {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    #popupCancelSite:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    .icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body>
+  <h2>Add Current Site</h2>
+
+  <div class="input-group">
+    <label for="popupSiteName">Site Name</label>
+    <input id="popupSiteName" placeholder="e.g. Google" type="text">
+  </div>
+
+  <div class="input-group">
+    <label for="popupSiteURL">Website URL</label>
+    <input id="popupSiteURL" placeholder="https://example.com" type="url">
+  </div>
+  <div class="input-group">
+    <label for="popupSiteIcon">Icon URL (optional)</label>
+    <input id="popupSiteIcon" placeholder="https://example.com/favicon.ico" type="url">
+  </div>
+
+  <div class="input-group">
+    <label for="popupFolderSelect">Folder (optional)</label>
+    <div style="display: flex; gap: 8px;">
+      <select id="popupFolderSelect" style="flex: 1;">
+        <option value="none">None (no folder)</option>
+      </select>
+      <button id="btnShowAddFolder" type="button" style="flex: 0 0 auto; width: 42px; padding: 0; justify-content: center;" title="Create New Folder">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="input-group" id="newFolderGroup" style="display: none;">
+    <label for="popupNewFolderName">New Folder Name</label>
+    <div style="display: flex; gap: 8px;">
+      <input id="popupNewFolderName" placeholder="My New Folder" type="text" style="flex: 1;">
+      <button id="btnCancelAddFolder" type="button" style="flex: 0 0 auto; width: 42px; padding: 0; justify-content: center; background: rgba(255, 59, 48, 0.2); color: #ff8a85; border: 1px solid rgba(255, 59, 48, 0.4);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button id="popupSaveSite">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+      </svg>
+      Save
+    </button>
+    <button id="popupCancelSite">
+      <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      Cancel
+    </button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
