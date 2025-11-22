@@ -210,7 +210,9 @@ document.addEventListener('DOMContentLoaded', function () {
       // Save back to storage
       browser.storage.local.set({ tiles: links }).then(() => {
         // Notify the new tab page if it's open
-        browser.runtime.sendMessage({ action: 'tileAdded' });
+        browser.runtime.sendMessage({ action: 'tileAdded' }).catch(() => {
+          // Ignore error if no listener is active (e.g. new tab not open)
+        });
         window.close();
       });
     });

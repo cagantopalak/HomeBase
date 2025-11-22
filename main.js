@@ -1211,6 +1211,9 @@ function openFolder(folder, index) {
     folderBubble.style.backdropFilter = '';
   }
 
+  // Fix: Ensure folder bubble text uses the selected font family
+  folderBubble.style.fontFamily = 'var(--tile-label-font-family)';
+
   // Create header container
   const header = document.createElement('div');
   header.className = 'folder-header-outside';
@@ -1506,13 +1509,19 @@ function openFolderEditModal(folder, index) {
   folderNameInput.value = folder.name || '';
 
   if (folder.colorHex) {
-    folderColorInput.value = folder.colorHex;
+    // Ensure we have a valid 7-char hex for the input
+    let safeHex = folder.colorHex;
+    if (safeHex.length !== 7 && safeHex.startsWith('#')) {
+      // simplistic fix if needed, or just fallback
+    }
+    folderColorInput.value = safeHex;
     folderColorInput.removeAttribute('data-use-default');
     delete folderColorInput.dataset.useDefault;
     if (resetFolderColorBtn) resetFolderColorBtn.classList.remove('active-reset');
   } else {
     // show main tile color so user sees what resetting will do
-    folderColorInput.value = getMainTileHex();
+    const mainHex = getMainTileHex();
+    folderColorInput.value = (mainHex && mainHex.length === 7) ? mainHex : '#ffffff';
     folderColorInput.dataset.useDefault = '1';
     if (resetFolderColorBtn) resetFolderColorBtn.classList.add('active-reset');
   }
@@ -1875,7 +1884,7 @@ function openEditModal() {
 
   // Initialize tile border width select
   if (tileBorderWidthSelect) {
-    const currentBorder = localStorage.getItem('tileBorderWidth') || '2px';
+    const currentBorder = localStorage.getItem('tileBorderWidth') || '0px';
     tileBorderWidthSelect.value = currentBorder;
     refreshCustomDropdown('tileBorderWidthDropdown', 'tileBorderWidthSelect');
   }
@@ -1907,6 +1916,9 @@ function closeEditModal() {
   pendingTilePlacement = null;
   pendingSoundVolume = null;
   pendingShowClock = null;
+
+  // Revert tile placement to saved state
+  applyTilePlacement();
 
   document.documentElement.style.setProperty('--tile-label-color', localStorage.getItem('textColor') || '#FFFFFF');
   document.documentElement.style.setProperty('--tile-label-font-family', localStorage.getItem('fontFamily') || "'Roboto', sans-serif");
@@ -2141,7 +2153,8 @@ if (resetFolderColorBtn && folderColorInput) {
 
     // Update picker to show current main color and mark as default
     const mainHex = getMainTileHex();
-    folderColorInput.value = mainHex;
+    // Ensure mainHex is a valid 7-char hex before setting
+    folderColorInput.value = (mainHex && mainHex.length === 7) ? mainHex : '#ffffff';
     folderColorInput.dataset.useDefault = '1';
     resetFolderColorBtn.classList.add('active-reset');
 
@@ -2296,14 +2309,9 @@ setupCustomDropdown('tileBorderWidthDropdown', 'tileBorderWidthSelect', (value) 
 
 // Setup Tile Placement Dropdown
 setupCustomDropdown('tilePlacementDropdown', 'tilePlacementSelect', (value) => {
-  // No immediate effect needed, or you can preview if desired.
-  // The original code didn't have an immediate effect listener for this besides saving.
-  // But let's check if there was a pending preview logic.
-  // Checking original code: it seems tilePlacementSelect didn't have an event listener for immediate preview in the snippets I viewed,
-  // but let's add one if we want to support preview, or just let it be saved.
-  // Ah, I see "pendingTilePlacement" logic in saveSettingsBtn.
-  // Let's add a listener to update pendingTilePlacement.
+  // Update pending value and apply immediately for preview
   pendingTilePlacement = value;
+  applyTilePlacement();
 });
 
 // Setup Clock Format Dropdown
@@ -2528,7 +2536,7 @@ exportAllSettingsAndLinksBtn.addEventListener('click', () => {
             soundVolume: localStorage.getItem('soundVolume'),
             showClock: localStorage.getItem('showClock'),
             tilePlacement: localStorage.getItem('tilePlacement') || 'top',
-            tileBorderWidth: localStorage.getItem('tileBorderWidth') || '2px',
+            tileBorderWidth: localStorage.getItem('tileBorderWidth') || '0px',
             clockColor: localStorage.getItem('clockColor'),
             clockFontFamily: localStorage.getItem('clockFontFamily'),
             clockFormat: localStorage.getItem('clockFormat'),
@@ -2551,7 +2559,7 @@ exportAllSettingsAndLinksBtn.addEventListener('click', () => {
         soundVolume: localStorage.getItem('soundVolume'),
         showClock: localStorage.getItem('showClock'),
         tilePlacement: localStorage.getItem('tilePlacement') || 'top',
-        tileBorderWidth: localStorage.getItem('tileBorderWidth') || '2px',
+        tileBorderWidth: localStorage.getItem('tileBorderWidth') || '0px',
         clockColor: localStorage.getItem('clockColor'),
         clockFontFamily: localStorage.getItem('clockFontFamily'),
         clockFormat: localStorage.getItem('clockFormat'),
@@ -2581,7 +2589,7 @@ exportAllSettingsOnlyBtn.addEventListener('click', () => {
       soundVolume: localStorage.getItem('soundVolume'),
       showClock: localStorage.getItem('showClock'),
       tilePlacement: localStorage.getItem('tilePlacement') || 'top',
-      tileBorderWidth: localStorage.getItem('tileBorderWidth') || '2px',
+      tileBorderWidth: localStorage.getItem('tileBorderWidth') || '0px',
       clockColor: localStorage.getItem('clockColor'),
       clockFontFamily: localStorage.getItem('clockFontFamily'),
       clockFormat: localStorage.getItem('clockFormat'),
@@ -3011,7 +3019,7 @@ document.getElementById('ctxDelete').addEventListener('click', () => {
 
 // Listen for messages from the popup
 if (typeof browser !== 'undefined' && browser.runtime) {
-  browser.runtime.onMessage.addListener((message) => {
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'tileAdded') {
       // Refresh the tiles by getting them from storage
       if (typeof browser !== 'undefined' && browser.storage) {
@@ -3025,6 +3033,7 @@ if (typeof browser !== 'undefined' && browser.runtime) {
         links = JSON.parse(localStorage.getItem("tiles") || "[]");
         renderTiles();
       }
+      sendResponse({ success: true });
     }
   });
 }
@@ -3110,7 +3119,30 @@ function showWelcomeModal() {
     welcomeModal.style.display = 'flex';
     document.body.classList.add('modal-open');
 
+    // Disable button initially and start countdown
+    welcomeConfirmBtn.disabled = true;
+    welcomeConfirmBtn.style.opacity = '0.5';
+    welcomeConfirmBtn.style.cursor = 'not-allowed';
+
+    let timeLeft = 5;
+    const originalText = welcomeConfirmBtn.textContent;
+    welcomeConfirmBtn.textContent = `${originalText} (${timeLeft}s)`;
+
+    const timer = setInterval(() => {
+      timeLeft--;
+      if (timeLeft > 0) {
+        welcomeConfirmBtn.textContent = `${originalText} (${timeLeft}s)`;
+      } else {
+        clearInterval(timer);
+        welcomeConfirmBtn.textContent = originalText;
+        welcomeConfirmBtn.disabled = false;
+        welcomeConfirmBtn.style.opacity = '1';
+        welcomeConfirmBtn.style.cursor = 'pointer';
+      }
+    }, 1000);
+
     welcomeConfirmBtn.addEventListener('click', () => {
+      if (welcomeConfirmBtn.disabled) return;
       welcomeModal.style.display = 'none';
       document.body.classList.remove('modal-open');
       localStorage.setItem('hasSeenWelcome', 'true'); // Mark as seen
