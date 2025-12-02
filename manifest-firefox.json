@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "HomeBase",
-    "version": "6.1",
+    "version": "6.4",
     "description": "Loads HomeBase as the new tab and homepage.",
     "chrome_url_overrides": {
         "newtab": "newtab.html"
