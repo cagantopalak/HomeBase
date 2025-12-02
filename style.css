@@ -266,7 +266,8 @@ body.modal-open {
 
 /* === NEW: FOLDER EDIT MODAL === */
 /* This mirrors the #siteModal styles for a consistent look */
-#folderModal .modal-content {
+#folderModal .modal-content,
+#stickyNoteSettingsModal .modal-content {
   background: var(--modal-bg-dark);
   backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--modal-border-dark);
@@ -279,9 +280,12 @@ body.modal-open {
   flex-direction: column;
   gap: 15px;
   color: var(--modal-text-color-dark);
+  overflow: visible;
+  /* Allow dropdowns to extend outside */
 }
 
-#folderModal h2 {
+#folderModal h2,
+#stickyNoteSettingsModal h2 {
   text-align: center;
   margin-bottom: 10px;
   font-weight: 500;
@@ -289,7 +293,8 @@ body.modal-open {
 
 
 
-#folderModal input {
+#folderModal input:not([type="color"]),
+#stickyNoteSettingsModal input:not([type="color"]) {
   background: var(--input-bg-dark);
   border: 1px solid var(--input-border-dark);
   color: var(--modal-text-color-dark);
@@ -299,11 +304,13 @@ body.modal-open {
   outline: none;
 }
 
-#folderModal input::placeholder {
+#folderModal input::placeholder,
+#stickyNoteSettingsModal input::placeholder {
   color: var(--placeholder-color-dark);
 }
 
-#folderModal .button-group {
+#folderModal .button-group,
+#stickyNoteSettingsModal .button-group {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -524,6 +531,8 @@ input[type="range"]:focus {
   gap: 14px;
   position: relative;
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 200ms ease;
+  overflow: visible;
+  /* Allow dropdowns to extend outside */
 }
 
 
@@ -928,6 +937,17 @@ select option {
   color: var(--text);
 }
 
+.modal .modal-content .button-group .small-cancel-button {
+  padding: 8px 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.modal .modal-content .button-group .small-cancel-button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
 
 /* Settings modal save/cancel buttons specific positioning */
 #editModal .button-group {
@@ -1145,7 +1165,7 @@ select option {
   border-radius: 8px;
   backdrop-filter: blur(5px);
   transition: all 0.2s ease;
-  border-width: var(--folder-icon-border-width, 1px);
+  border-width: var(--folder-icon-border-width, 2px);
   border-style: solid;
   border-color: var(--tile-border-color);
   pointer-events: none;
@@ -1166,9 +1186,7 @@ select option {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--tile-bg-color);
-  border: 1px solid var(--modal-border-dark);
-  border-radius: 24px;
+  /* background, border, border-radius moved to inner */
   padding: 0;
   z-index: 2000;
   display: none;
@@ -1177,7 +1195,20 @@ select option {
   max-height: 80vh;
   overflow: visible;
   /* Allow header to be seen outside */
+  /* box-shadow moved to inner */
+}
+
+.folder-bubble-inner {
+  background: var(--tile-bg-color);
+  border: 1px solid var(--modal-border-dark);
+  border-radius: 24px;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -1326,7 +1357,7 @@ select option {
   gap: 6px;
   background: rgba(108, 99, 255, 0.3);
   color: #8a85ff;
-  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+
 }
 
 .contact-button:hover {
@@ -1396,6 +1427,38 @@ select option {
 }
 
 #folderModal #cancelFolderBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+#stickyNoteSettingsModal #saveStickyNoteSettingsBtn {
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(75, 255, 108, 0.3);
+  color: white;
+  box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
+}
+
+#stickyNoteSettingsModal #saveStickyNoteSettingsBtn:hover {
+  background: rgba(75, 255, 108, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
+}
+
+#stickyNoteSettingsModal #cancelStickyNoteSettingsBtn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+#stickyNoteSettingsModal #cancelStickyNoteSettingsBtn:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text);
 }
@@ -1607,10 +1670,22 @@ select option {
   visibility: hidden;
   transform: translateY(-10px);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1000;
+  z-index: 10000;
+  /* Increased z-index to show above modal */
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   max-height: 300px;
   overflow-y: auto;
+}
+
+/* Make dropdowns in sticky note modal extend upward */
+#stickyNoteSettingsModal .dropdown-options {
+  top: auto;
+  bottom: calc(100% + 6px);
+  transform: translateY(10px);
+}
+
+#stickyNoteSettingsModal .custom-dropdown.open .dropdown-options {
+  transform: translateY(0);
 }
 
 .custom-dropdown.open .dropdown-options {
@@ -1658,4 +1733,351 @@ select option {
 
 .dropdown-options::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* ---------- STICKY NOTES ---------- */
+.sticky-note {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  background-color: #fff740;
+  /* Default yellow */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  /* Above tiles */
+  transition: box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.sticky-note:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  /* Bring to front on hover */
+}
+
+.sticky-note.dragging {
+  opacity: 0.9;
+  cursor: grabbing;
+  z-index: 1002;
+}
+
+.sticky-note-header {
+  height: 30px;
+  background-color: rgba(0, 0, 0, 0.1);
+  cursor: grab;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 5px;
+  flex-shrink: 0;
+}
+
+.sticky-note-header:active {
+  cursor: grabbing;
+}
+
+.sticky-note-content {
+  flex-grow: 1;
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  padding: 10px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: #000;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+
+/* Custom scrollbar for note content */
+.sticky-note-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sticky-note-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 999px;
+  backdrop-filter: blur(2px);
+}
+
+/* Firefox thin scrollbar */
+.sticky-note-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+/* Resizer handle for sticky notes (bottom-right corner) */
+.sticky-note-resizer {
+  width: 18px;
+  height: 18px;
+  position: absolute;
+  z-index: 2000;
+  background: transparent;
+  opacity: 0.9;
+}
+
+/* place handles slightly outside the note so they're easier to grab */
+.sticky-note .resizer-tl {
+  left: -10px;
+  top: -10px;
+}
+
+.sticky-note .resizer-tr {
+  right: -10px;
+  top: -10px;
+}
+
+.sticky-note .resizer-bl {
+  left: -10px;
+  bottom: -10px;
+}
+
+.sticky-note .resizer-br {
+  right: -10px;
+  bottom: -10px;
+}
+
+/* Slight visible corner on hover to hint resizability */
+.sticky-note:hover .sticky-note-resizer {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Decorative diagonal grip lines */
+.sticky-note-resizer {
+  background-image: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 4px);
+}
+
+/* When actively resizing, make handle a bit larger for better control */
+.sticky-note.resizing .sticky-note-resizer {
+  width: 22px;
+  height: 22px;
+}
+
+/* Make corner indicators visible in every corner (small dot) */
+.sticky-note::before,
+.sticky-note::after,
+.sticky-note .corner-indicator {
+  display: none;
+}
+
+.sticky-note:hover .corner-indicator {
+  display: block;
+}
+
+.corner-indicator {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.14);
+  z-index: 1900;
+}
+
+.sticky-note .corner-indicator.tl {
+  left: 6px;
+  top: 6px;
+}
+
+.sticky-note .corner-indicator.tr {
+  right: 6px;
+  top: 6px;
+}
+
+.sticky-note .corner-indicator.bl {
+  left: 6px;
+  bottom: 6px;
+}
+
+.sticky-note .corner-indicator.br {
+  right: 6px;
+  bottom: 6px;
+}
+
+.sticky-note-controls {
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  /* Hidden by default */
+  transition: opacity 0.2s;
+}
+
+.sticky-note:hover .sticky-note-controls {
+  opacity: 1;
+}
+
+.sticky-note-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sticky-note-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: #000;
+}
+
+.sticky-note-btn.delete-btn:hover {
+  background-color: rgba(255, 0, 0, 0.2);
+  color: #d00;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Sticky Note Title */
+.sticky-note-title {
+  /* Removed flex-grow: 1 so it doesn't take full width */
+  max-width: 120px;
+  /* Limit width so there is space to drag */
+  font-weight: bold;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+  margin-left: 4px;
+  cursor: text;
+  outline: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.sticky-note-title:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.sticky-note-title:focus {
+  border-color: rgba(0, 0, 0, 0.5);
+  cursor: text;
+}
+
+/* Rich Text Content */
+.sticky-note-content {
+  overflow-y: auto;
+  /* Allow scrolling */
+  white-space: pre-wrap;
+  /* Preserve whitespace */
+}
+
+/* Formatting Menu */
+.formatting-menu {
+  position: fixed;
+  /* Fixed to viewport */
+  background: rgba(30, 30, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  min-width: 150px;
+  animation: fadeIn 0.1s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.formatting-menu button {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.formatting-menu button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.formatting-menu button.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-weight: bold;
+}
+
+.formatting-menu-separator {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0;
+}
+
+/* Checklist style in contenteditable */
+.sticky-note-content ul.checklist {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.sticky-note-content ul.checklist li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.sticky-note-content ul.checklist li::before {
+  content: '☐';
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.6);
+  transition: color 0.2s;
+}
+
+.sticky-note-content ul.checklist li:hover::before {
+  color: #000;
+}
+
+.sticky-note-content ul.checklist li.checked::before {
+  content: '☑';
+  color: #2e7d32;
+  /* Green */
+}
+
+.sticky-note-content ul.checklist li.checked {
+  text-decoration: line-through;
+  opacity: 0.6;
 }

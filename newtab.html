@@ -1,68 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>New Tab</title>
-<link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700&family=Climate+Crisis&family=Fredoka:wght@300;400;600&family=Inter:wght@300;400;600&family=Lobster&family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&family=Oswald:wght@300;400;600&family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Righteous&family=Roboto:wght@300;400;500&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
-</head>
-<body>
-  <div class="modal" id="welcomeModal">
-  <div class="modal-content">
-    <h2>Welcome to HomeBase!</h2>
-    <p>This is your personalized homepage/newtab. Here's a quick guide on how to use it:</p>
-    <ul>
-      <li><strong>Add Tiles:</strong> Click on the "<span class="add-tile-text">+</span>" tile to add new websites.</li>
-      <li><strong>Settings:</strong> Right-click on any empty space to open settings menu. customize your background, colors, fonts, and more.</li>
-      <li><strong>Edit/Delete Tiles:</strong> Right-click on any tile in order to edit or delete it.</li>
-      <li><strong>Create Folders:</strong> To create a folder, click and drag a tile over another tile. This will create a new folder.</li>
-      <li><strong>Move Tiles:</strong> To rearrange the tiles, simply click and drag them to your desired position.</li>
-      <li><strong>Add Tile to Folder:</strong> To add a tile to a folder, click and drag a tile over a folder.</li>
-    </ul>
-    <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);">
-      <strong>Tip:</strong> Don't forget to export your homepage settings occasionally to have a backup of your links!
-    </p>
-    <div class="button-group">
-      <button id="welcomeConfirmBtn" class="primary-button">Got It!</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Tab</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;700&family=Climate+Crisis&family=Fredoka:wght@300;400;600&family=Inter:wght@300;400;600&family=Lobster&family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;600&family=Oswald:wght@300;400;600&family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Righteous&family=Roboto:wght@300;400;500&family=Space+Grotesk:wght@300;400;600&family=Kalam:wght@300;400;700&family=Caveat:wght@400;700&family=Patrick+Hand&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    />
+  </head>
+  <body>
+    <div class="modal" id="welcomeModal">
+      <div class="modal-content">
+        <h2>Welcome to HomeBase!</h2>
+        <p>
+          This is your personalized homepage/newtab. Here's a quick guide on how
+          to use it:
+        </p>
+        <ul>
+          <li>
+            <strong>Add Tiles:</strong> Click on the "<span
+              class="add-tile-text"
+              >+</span
+            >" tile to add new websites.
+          </li>
+          <li>
+            <strong>Settings:</strong> Right-click on any empty space to open
+            settings menu. customize your background, colors, fonts, and more.
+          </li>
+          <li>
+            <strong>Edit/Delete Tiles:</strong> Right-click on any tile in order
+            to edit or delete it.
+          </li>
+          <li>
+            <strong>Create Folders:</strong> To create a folder, click and drag
+            a tile over another tile. This will create a new folder.
+          </li>
+          <li>
+            <strong>Move Tiles:</strong> To rearrange the tiles, simply click
+            and drag them to your desired position.
+          </li>
+          <li>
+            <strong>Add Tile to Folder:</strong> To add a tile to a folder,
+            click and drag a tile over a folder.
+          </li>
+        </ul>
+        <p
+          style="
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+          "
+        >
+          <strong>Tip:</strong> Don't forget to export your homepage settings
+          occasionally to have a backup of your links!
+        </p>
+        <div class="button-group">
+          <button id="welcomeConfirmBtn" class="primary-button">Got It!</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-  <div class="modal" id="pinModal">
-    <div class="modal-content">
-      <div class="pin-icon" aria-hidden="true">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #4285f4;">
-          <path d="M16 9V4l1 0c0.55 0 1 -0.45 1 -1s-0.45 -1 -1 -1H7C6.45 2 6 2.45 6 3s0.45 1 1 1l1 0v5c0 1.66 -1.34 3 -3 3v2h5.97v7l1 1l1 -1v-7H19v-2c-1.66 0 -3 -1.34 -3 -3z"/>
-        </svg>
-      </div>
-      <h2>Pin the Extension to Your Toolbar</h2>
-      <p>Pinning the extension makes it easier to add sites and access features quickly.</p>
-      <ol>
-      <h4>Chrome</h4>
-        <li>Click the puzzle-piece (Extensions) icon to the right of the address bar.</li>
-        <li>Find the extension and click the pin icon so it turns blue.</li>
-      </ol>
-      <ol>
-      <h4>Firefox</h4>
-        <li>Click the puzzle-piece (Extensions) icon to the right of the address bar.</li>
-        <li>Find the extension and right click on it than click the pin to toolbar button.</li>
-      </ol>
-      <div class="button-group">
-        <button id="pinModalGotItBtn" class="primary-button">I pinned it / Close</button>
+    <div class="modal" id="pinModal">
+      <div class="modal-content">
+        <div class="pin-icon" aria-hidden="true">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            style="color: #4285f4"
+          >
+            <path
+              d="M16 9V4l1 0c0.55 0 1 -0.45 1 -1s-0.45 -1 -1 -1H7C6.45 2 6 2.45 6 3s0.45 1 1 1l1 0v5c0 1.66 -1.34 3 -3 3v2h5.97v7l1 1l1 -1v-7H19v-2c-1.66 0 -3 -1.34 -3 -3z"
+            />
+          </svg>
+        </div>
+        <h2>Pin the Extension to Your Toolbar</h2>
+        <p>
+          Pinning the extension makes it easier to add sites and access features
+          quickly.
+        </p>
+        <ol>
+          <h4>Chrome</h4>
+          <li>
+            Click the puzzle-piece (Extensions) icon to the right of the address
+            bar.
+          </li>
+          <li>Find the extension and click the pin icon so it turns blue.</li>
+        </ol>
+        <ol>
+          <h4>Firefox</h4>
+          <li>
+            Click the puzzle-piece (Extensions) icon to the right of the address
+            bar.
+          </li>
+          <li>
+            Find the extension and right click on it than click the pin to
+            toolbar button.
+          </li>
+        </ol>
+        <div class="button-group">
+          <button id="pinModalGotItBtn" class="primary-button">
+            I pinned it / Close
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
     <div class="container" id="tilesContainer"></div>
 
     <div class="modal" id="siteModal">
       <div class="modal-content">
         <h2 id="modalTitle">Add a Site</h2>
-        <input id="siteName"  placeholder="Site Name" type="text">
-        <input id="siteURL"   placeholder="https://example.com" type="url">
-        <input id="siteIcon"  placeholder="Icon URL (optional)" type="url">
+        <input id="siteName" placeholder="Site Name" type="text" />
+        <input id="siteURL" placeholder="https://example.com" type="url" />
+        <input id="siteIcon" placeholder="Icon URL (optional)" type="url" />
         <div class="button-group">
           <button id="saveSite">Save</button>
           <button id="cancelSite">Cancel</button>
@@ -73,106 +132,251 @@
     <div class="modal" id="folderModal">
       <div class="modal-content">
         <h2 id="folderModalTitle">Edit Folder</h2>
-        
-        <div class="setting-group" style="margin-top: 20px;">
+
+        <div class="setting-group" style="margin-top: 20px">
           <div class="setting-group-title">Folder Settings</div>
-          
-          <label style="cursor: default;">
+
+          <label style="cursor: default">
             <span>Name</span>
-            <input id="folderNameInput" placeholder="Folder Name" type="text" style="width: 200px; text-align: left ;">
+            <input
+              id="folderNameInput"
+              placeholder="Folder Name"
+              type="text"
+              style="width: 200px; text-align: left"
+            />
           </label>
-          
-          <label style="cursor: default;">
+
+          <label style="cursor: default">
             <span>Color</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px">
               <input id="folderColorInput" type="color" value="#ffffff" />
-              <button id="resetFolderColorBtn" class="reset-button" style="padding: 6px 12px; font-size: 0.85rem;">Reset</button>
+              <button
+                id="resetFolderColorBtn"
+                class="reset-button"
+                style="padding: 6px 12px; font-size: 0.85rem"
+              >
+                Reset
+              </button>
             </div>
           </label>
         </div>
 
-        <div class="button-group" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+        <div
+          class="button-group"
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+          "
+        >
           <button id="saveFolderBtn" class="primary-button">Save</button>
           <button id="cancelFolderBtn" class="secondary-button">Cancel</button>
         </div>
       </div>
     </div>
 
-<div class="context-menu" id="editButtonContextMenu" style="display:none;">
-  <button id="editBtn" class="context-menu-button">Settings</button>
-</div>
+    <div class="context-menu" id="editButtonContextMenu" style="display: none">
+      <button id="editBtn" class="context-menu-button">Settings</button>
+      <button id="addStickyNoteCtxBtn" class="context-menu-button">
+        Add Sticky Note
+      </button>
+    </div>
 
-<div class="context-menu" id="tileContextMenu" style="display:none;">
-  <button id="editTileBtn" class="context-menu-button">Edit</button>
-  <button id="deleteTileBtn" class="context-menu-button">Delete</button>
-</div>
+    <div class="context-menu" id="tileContextMenu" style="display: none">
+      <button id="editTileBtn" class="context-menu-button">Edit</button>
+      <button id="deleteTileBtn" class="context-menu-button">Delete</button>
+    </div>
 
     <div class="modal" id="editModal">
       <div class="modal-content">
         <div class="setting-group">
           <div class="setting-group-title">Appearance</div>
-          <label>Text Color:<input type="color" id="textColorInput" value="#000000" /></label>
-    <label>Tile Color:
-  <input type="color" id="tileColorInput" value="#ffffff" />
-  <button id="resetColorsBtn" class="reset-button">Reset</button>
-</label>
-          <label class="custom-dropdown-label">Font Family:
+          <label
+            >Text Color:<input type="color" id="textColorInput" value="#000000"
+          /></label>
+          <label
+            >Tile Color:
+            <input type="color" id="tileColorInput" value="#ffffff" />
+            <button id="resetColorsBtn" class="reset-button">Reset</button>
+          </label>
+          <label class="custom-dropdown-label"
+            >Font Family:
             <div class="custom-dropdown" id="fontFamilyDropdown">
               <div class="dropdown-selected" tabindex="0">
                 <span class="current-font-label">Roboto</span>
                 <div class="dropdown-arrow">
-                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <svg
+                    width="10"
+                    height="6"
+                    viewBox="0 0 10 6"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 1L5 5L9 1"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </div>
               </div>
               <div class="dropdown-options">
-                <div class="dropdown-option" data-value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif;">Roboto</div>
-                <div class="dropdown-option" data-value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif;">Inter</div>
-                <div class="dropdown-option" data-value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif;">Montserrat</div>
-                <div class="dropdown-option" data-value="'Outfit', sans-serif" style="font-family: 'Outfit', sans-serif;">Outfit</div>
-                <div class="dropdown-option" data-value="'Space Grotesk', sans-serif" style="font-family: 'Space Grotesk', sans-serif;">Space Grotesk</div>
-                <div class="dropdown-option" data-value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif;">Playfair Display</div>
-                <div class="dropdown-option" data-value="'Lora', serif" style="font-family: 'Lora', serif;">Lora</div>
-                <div class="dropdown-option" data-value="'Cinzel', serif" style="font-family: 'Cinzel', serif;">Cinzel</div>
-                <div class="dropdown-option" data-value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif;">Oswald</div>
-                <div class="dropdown-option" data-value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif;">Bebas Neue</div>
-                <div class="dropdown-option" data-value="'Righteous', cursive" style="font-family: 'Righteous', cursive;">Righteous</div>
-                <div class="dropdown-option" data-value="'Fredoka', sans-serif" style="font-family: 'Fredoka', sans-serif;">Fredoka</div>
-                <div class="dropdown-option" data-value="'Lobster', cursive" style="font-family: 'Lobster', cursive;">Lobster</div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Roboto', sans-serif"
+                  style="font-family: 'Roboto', sans-serif"
+                >
+                  Roboto
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Inter', sans-serif"
+                  style="font-family: 'Inter', sans-serif"
+                >
+                  Inter
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Montserrat', sans-serif"
+                  style="font-family: 'Montserrat', sans-serif"
+                >
+                  Montserrat
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Outfit', sans-serif"
+                  style="font-family: 'Outfit', sans-serif"
+                >
+                  Outfit
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Space Grotesk', sans-serif"
+                  style="font-family: 'Space Grotesk', sans-serif"
+                >
+                  Space Grotesk
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Playfair Display', serif"
+                  style="font-family: 'Playfair Display', serif"
+                >
+                  Playfair Display
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Lora', serif"
+                  style="font-family: 'Lora', serif"
+                >
+                  Lora
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Cinzel', serif"
+                  style="font-family: 'Cinzel', serif"
+                >
+                  Cinzel
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Oswald', sans-serif"
+                  style="font-family: 'Oswald', sans-serif"
+                >
+                  Oswald
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Bebas Neue', sans-serif"
+                  style="font-family: 'Bebas Neue', sans-serif"
+                >
+                  Bebas Neue
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Righteous', cursive"
+                  style="font-family: 'Righteous', cursive"
+                >
+                  Righteous
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Fredoka', sans-serif"
+                  style="font-family: 'Fredoka', sans-serif"
+                >
+                  Fredoka
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Lobster', cursive"
+                  style="font-family: 'Lobster', cursive"
+                >
+                  Lobster
+                </div>
               </div>
-              <input type="hidden" id="fontFamilySelect" value="'Roboto', sans-serif">
+              <input
+                type="hidden"
+                id="fontFamilySelect"
+                value="'Roboto', sans-serif"
+              />
             </div>
           </label>
           <label class="background-setting-label">
             Background Image:
             <div class="background-input-wrapper">
-                <input type="file" id="bgFileInput" accept="image/*" style="display:none;" />
-                <button id="browseBgButton" class="browse-button-color">Browse</button>
-                <button id="resetBgBtn" class="reset-button">Reset</button>
+              <input
+                type="file"
+                id="bgFileInput"
+                accept="image/*"
+                style="display: none"
+              />
+              <button id="browseBgButton" class="browse-button-color">
+                Browse
+              </button>
+              <button id="resetBgBtn" class="reset-button">Reset</button>
             </div>
           </label>
         </div>
 
         <div class="setting-group">
           <div class="setting-group-title">Sound</div>
-          <label>Sound Volume:</label>
-          <div class="volume-control"> <input type="range" id="soundVolumeInput" min="0" max="1" step="0.05" />
-            
-             </div>
+          <label>Volume:</label>
+          <div class="volume-control">
+            <input
+              type="range"
+              id="soundVolumeInput"
+              min="0"
+              max="1"
+              step="0.05"
+            />
+          </div>
         </div>
 
         <div class="setting-group">
           <div class="setting-group-title">Display Options</div>
           <div class="display-options-row">
-              <label class="custom-dropdown-label">
+            <label class="custom-dropdown-label">
               Tile Border Width:
               <div class="custom-dropdown" id="tileBorderWidthDropdown">
                 <div class="dropdown-selected" tabindex="0">
                   <span class="current-font-label">2px</span>
                   <div class="dropdown-arrow">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 1L5 5L9 1"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -182,7 +386,7 @@
                   <div class="dropdown-option" data-value="3px">3px</div>
                   <div class="dropdown-option" data-value="4px">4px</div>
                 </div>
-                <input type="hidden" id="tileBorderWidthSelect" value="2px">
+                <input type="hidden" id="tileBorderWidthSelect" value="2px" />
               </div>
             </label>
             <label class="custom-dropdown-label">
@@ -191,8 +395,20 @@
                 <div class="dropdown-selected" tabindex="0">
                   <span class="current-font-label">Top</span>
                   <div class="dropdown-arrow">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 1L5 5L9 1"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -200,7 +416,7 @@
                   <div class="dropdown-option" data-value="top">Top</div>
                   <div class="dropdown-option" data-value="middle">Middle</div>
                 </div>
-                <input type="hidden" id="tilePlacementSelect" value="top">
+                <input type="hidden" id="tilePlacementSelect" value="top" />
               </div>
             </label>
           </div>
@@ -212,47 +428,175 @@
             <span class="collapsible-arrow">▼</span>
           </div>
           <div class="collapsible-content">
-            <label><input type="checkbox" id="showClockToggle" /> Show Clock</label>
-                        <label>Clock Size:
-              <input type="range" id="clockSizeInput" min="20" max="100" step="10" />
+            <label
+              ><input type="checkbox" id="showClockToggle" /> Show Clock</label
+            >
+            <label
+              >Clock Size:
+              <input
+                type="range"
+                id="clockSizeInput"
+                min="20"
+                max="100"
+                step="10"
+              />
             </label>
-            <label>Clock Color:<input type="color" id="clockColorInput" value="#FFFFFF" /></label>
-            <label class="custom-dropdown-label">Clock Font:
+            <label
+              >Clock Color:<input
+                type="color"
+                id="clockColorInput"
+                value="#FFFFFF"
+            /></label>
+            <label class="custom-dropdown-label"
+              >Clock Font:
               <div class="custom-dropdown" id="clockFontFamilyDropdown">
                 <div class="dropdown-selected" tabindex="0">
                   <span class="current-font-label">Climate Crisis</span>
                   <div class="dropdown-arrow">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 1L5 5L9 1"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </div>
                 </div>
                 <div class="dropdown-options">
-                  <div class="dropdown-option" data-value="'Climate Crisis', cursive" style="font-family: 'Climate Crisis', cursive;">Climate Crisis</div>
-                  <div class="dropdown-option" data-value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif;">Roboto</div>
-                  <div class="dropdown-option" data-value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif;">Inter</div>
-                  <div class="dropdown-option" data-value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif;">Montserrat</div>
-                  <div class="dropdown-option" data-value="'Outfit', sans-serif" style="font-family: 'Outfit', sans-serif;">Outfit</div>
-                  <div class="dropdown-option" data-value="'Space Grotesk', sans-serif" style="font-family: 'Space Grotesk', sans-serif;">Space Grotesk</div>
-                  <div class="dropdown-option" data-value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif;">Playfair Display</div>
-                  <div class="dropdown-option" data-value="'Lora', serif" style="font-family: 'Lora', serif;">Lora</div>
-                  <div class="dropdown-option" data-value="'Cinzel', serif" style="font-family: 'Cinzel', serif;">Cinzel</div>
-                  <div class="dropdown-option" data-value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif;">Oswald</div>
-                  <div class="dropdown-option" data-value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif;">Bebas Neue</div>
-                  <div class="dropdown-option" data-value="'Righteous', cursive" style="font-family: 'Righteous', cursive;">Righteous</div>
-                  <div class="dropdown-option" data-value="'Fredoka', sans-serif" style="font-family: 'Fredoka', sans-serif;">Fredoka</div>
-                  <div class="dropdown-option" data-value="'Lobster', cursive" style="font-family: 'Lobster', cursive;">Lobster</div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Climate Crisis', cursive"
+                    style="font-family: 'Climate Crisis', cursive"
+                  >
+                    Climate Crisis
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Roboto', sans-serif"
+                    style="font-family: 'Roboto', sans-serif"
+                  >
+                    Roboto
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Inter', sans-serif"
+                    style="font-family: 'Inter', sans-serif"
+                  >
+                    Inter
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Montserrat', sans-serif"
+                    style="font-family: 'Montserrat', sans-serif"
+                  >
+                    Montserrat
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Outfit', sans-serif"
+                    style="font-family: 'Outfit', sans-serif"
+                  >
+                    Outfit
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Space Grotesk', sans-serif"
+                    style="font-family: 'Space Grotesk', sans-serif"
+                  >
+                    Space Grotesk
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Playfair Display', serif"
+                    style="font-family: 'Playfair Display', serif"
+                  >
+                    Playfair Display
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Lora', serif"
+                    style="font-family: 'Lora', serif"
+                  >
+                    Lora
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Cinzel', serif"
+                    style="font-family: 'Cinzel', serif"
+                  >
+                    Cinzel
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Oswald', sans-serif"
+                    style="font-family: 'Oswald', sans-serif"
+                  >
+                    Oswald
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Bebas Neue', sans-serif"
+                    style="font-family: 'Bebas Neue', sans-serif"
+                  >
+                    Bebas Neue
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Righteous', cursive"
+                    style="font-family: 'Righteous', cursive"
+                  >
+                    Righteous
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Fredoka', sans-serif"
+                    style="font-family: 'Fredoka', sans-serif"
+                  >
+                    Fredoka
+                  </div>
+                  <div
+                    class="dropdown-option"
+                    data-value="'Lobster', cursive"
+                    style="font-family: 'Lobster', cursive"
+                  >
+                    Lobster
+                  </div>
                 </div>
-                <input type="hidden" id="clockFontFamilySelect" value="'Climate Crisis', cursive">
+                <input
+                  type="hidden"
+                  id="clockFontFamilySelect"
+                  value="'Climate Crisis', cursive"
+                />
               </div>
             </label>
-            <label class="custom-dropdown-label">Clock Format:
+            <label class="custom-dropdown-label"
+              >Clock Format:
               <div class="custom-dropdown" id="clockFormatDropdown">
                 <div class="dropdown-selected" tabindex="0">
                   <span class="current-font-label">24h</span>
                   <div class="dropdown-arrow">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 1L5 5L9 1"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -260,17 +604,33 @@
                   <div class="dropdown-option" data-value="24">24h</div>
                   <div class="dropdown-option" data-value="12">12h</div>
                 </div>
-                <input type="hidden" id="clockFormatSelect" value="24">
+                <input type="hidden" id="clockFormatSelect" value="24" />
               </div>
             </label>
-            <label><input type="checkbox" id="showSecondsToggle" /> Show Seconds</label>
-            <label class="custom-dropdown-label">Clock Position:
+            <label
+              ><input type="checkbox" id="showSecondsToggle" /> Show
+              Seconds</label
+            >
+            <label class="custom-dropdown-label"
+              >Clock Position:
               <div class="custom-dropdown" id="clockPositionDropdown">
                 <div class="dropdown-selected" tabindex="0">
                   <span class="current-font-label">Left</span>
                   <div class="dropdown-arrow">
-                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg
+                      width="10"
+                      height="6"
+                      viewBox="0 0 10 6"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M1 1L5 5L9 1"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -278,7 +638,7 @@
                   <div class="dropdown-option" data-value="left">Left</div>
                   <div class="dropdown-option" data-value="right">Right</div>
                 </div>
-                <input type="hidden" id="clockPositionSelect" value="left">
+                <input type="hidden" id="clockPositionSelect" value="left" />
               </div>
             </label>
           </div>
@@ -288,9 +648,16 @@
           <div class="setting-group-title">Data Management</div>
           <div class="button-row">
             <button id="exportBtn" class="export-buttons">Export</button>
-            <input type="file" id="importInput" accept=".json" style="display:none" />
+            <input
+              type="file"
+              id="importInput"
+              accept=".json"
+              style="display: none"
+            />
             <button id="importBtn" class="export-buttons">Import</button>
-            <button id="resetAllSettingsBtn" class="reset-button">Reset Options</button>
+            <button id="resetAllSettingsBtn" class="reset-button">
+              Reset Options
+            </button>
           </div>
         </div>
 
@@ -298,55 +665,230 @@
           <div class="left-buttons">
             <button id="contactBtn" class="contact-button">Contact</button>
           </div>
-            <div class="right-buttons">
-                <button id="saveSettingsBtn" class="Save-button">Save</button>
-                <button id="cancelSettingsBtn" class="Cancel-button">Cancel</button>
-            </div>
-           </div>  
+          <div class="right-buttons">
+            <button id="saveSettingsBtn" class="Save-button">Save</button>
+            <button id="cancelSettingsBtn" class="Cancel-button">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
-    
 
     <div class="modal" id="resetConfirmModal">
-  <div class="modal-content">
-    <h2>Reset Options</h2>
-    <h4>Don't forget to export your settings if you dont want to lose them</h4>
-    <p>Please choose what you would like to reset:</p>
-    <div class="button-group">
-      <button id="resetAllSettingsAndLinksBtn" class="reset-button">Reset All Settings and Links</button>
-      <button id="resetAllSettingsOnlyBtn" class="reset-button">Reset All Settings</button>
-      <button id="resetAllLinksOnlyBtn" class="reset-button">Reset All Links</button>
-      <button id="cancelResetOptionsBtn" class="secondary-button">Cancel</button>
+      <div class="modal-content">
+        <h2>Reset Options</h2>
+        <h4>
+          Don't forget to export your settings if you dont want to lose them
+        </h4>
+        <p>Please choose what you would like to reset:</p>
+        <div class="button-group">
+          <button id="resetAllSettingsAndLinksBtn" class="reset-button">
+            Reset All
+          </button>
+          <button id="resetAllSettingsOnlyBtn" class="reset-button">
+            Reset Settings
+          </button>
+          <button id="resetAllLinksOnlyBtn" class="reset-button">
+            Reset Links & Notes
+          </button>
+          <button id="cancelResetOptionsBtn" class="secondary-button">
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
     <div class="modal" id="exportConfirmModal">
       <div class="modal-content">
         <h2>Export Options</h2>
         <p>Please choose what you would like to export:</p>
         <div class="button-group">
-          <button id="exportAllSettingsAndLinksBtn" class="export-buttons">Export All Settings and Links</button>
-          <button id="exportAllSettingsOnlyBtn" class="export-buttons">Export All Settings</button>
-          <button id="exportAllLinksOnlyBtn" class="export-buttons">Export All Links</button>
-          <button id="cancelExportOptionsBtn" class="secondary-button">Cancel</button>
+          <button id="exportAllSettingsAndLinksBtn" class="export-buttons">
+            Export All
+          </button>
+          <button id="exportAllSettingsOnlyBtn" class="export-buttons">
+            Export Settings
+          </button>
+          <button id="exportAllLinksOnlyBtn" class="export-buttons">
+            Export Links & Notes
+          </button>
+          <button id="cancelExportOptionsBtn" class="secondary-button">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="stickyNoteSettingsModal">
+      <div class="modal-content">
+        <h2>Sticky Note Settings</h2>
+
+        <div class="setting-group" style="margin-top: 20px">
+          <div class="setting-group-title">Note Settings</div>
+
+          <label style="cursor: default">
+            <span>Paper Color</span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <input type="color" id="notePaperColorInput" value="#fff740" />
+            </div>
+          </label>
+
+          <label style="cursor: default">
+            <span>Text Color</span>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <input type="color" id="noteTextColorInput" value="#000000" />
+            </div>
+          </label>
+
+          <label class="custom-dropdown-label" style="cursor: default">
+            <span>Font Size</span>
+            <div class="custom-dropdown" id="noteFontSizeDropdown">
+              <div class="dropdown-selected" tabindex="0">
+                <span class="current-font-label">16px</span>
+                <div class="dropdown-arrow">
+                  <svg
+                    width="10"
+                    height="6"
+                    viewBox="0 0 10 6"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 1L5 5L9 1"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="dropdown-options">
+                <div class="dropdown-option" data-value="12">12px</div>
+                <div class="dropdown-option" data-value="14">14px</div>
+                <div class="dropdown-option" data-value="16">16px</div>
+                <div class="dropdown-option" data-value="18">18px</div>
+                <div class="dropdown-option" data-value="20">20px</div>
+                <div class="dropdown-option" data-value="24">24px</div>
+                <div class="dropdown-option" data-value="28">28px</div>
+                <div class="dropdown-option" data-value="32">32px</div>
+              </div>
+              <input type="hidden" id="noteFontSizeSelect" value="16" />
+            </div>
+          </label>
+
+          <label class="custom-dropdown-label" style="cursor: default">
+            <span>Font Family</span>
+            <div class="custom-dropdown" id="noteFontFamilyDropdown">
+              <div class="dropdown-selected" tabindex="0">
+                <span class="current-font-label">Roboto</span>
+                <div class="dropdown-arrow">
+                  <svg
+                    width="10"
+                    height="6"
+                    viewBox="0 0 10 6"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 1L5 5L9 1"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div class="dropdown-options">
+                <div
+                  class="dropdown-option"
+                  data-value="'Roboto', sans-serif"
+                  style="font-family: 'Roboto', sans-serif"
+                >
+                  Roboto
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Inter', sans-serif"
+                  style="font-family: 'Inter', sans-serif"
+                >
+                  Inter
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Kalam', cursive"
+                  style="font-family: 'Kalam', cursive"
+                >
+                  Kalam
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Caveat', cursive"
+                  style="font-family: 'Caveat', cursive"
+                >
+                  Caveat
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Patrick Hand', cursive"
+                  style="font-family: 'Patrick Hand', cursive"
+                >
+                  Patrick Hand
+                </div>
+                <div
+                  class="dropdown-option"
+                  data-value="'Courier New', monospace"
+                  style="font-family: 'Courier New', monospace"
+                >
+                  Courier New
+                </div>
+              </div>
+              <input
+                type="hidden"
+                id="noteFontFamilySelect"
+                value="'Roboto', sans-serif"
+              />
+            </div>
+          </label>
+        </div>
+
+        <div
+          class="button-group"
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+          "
+        >
+          <button id="saveStickyNoteSettingsBtn" class="primary-button">
+            Save
+          </button>
+          <button id="cancelStickyNoteSettingsBtn" class="secondary-button">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
 
     <div id="new-digital-clock"></div>
 
-<div class="modal" id="contactModal">
+    <div class="modal" id="contactModal">
       <div class="modal-content">
-    <h2>Contact Me</h2>
-    <p>Feel free to reach out via email:</p>
+        <h2>Contact Me</h2>
+        <p>Feel free to reach out via email:</p>
         <div class="button-group">
-          <div class="contact-email" id="contactEmail">cagantshomepage@gmail.com</div>
+          <div class="contact-email" id="contactEmail">
+            cagantshomepage@gmail.com
+          </div>
           <button class="export-buttons" id="mailBtn">Mail</button>
-          <button id="closeContactModalBtn" class="secondary-button">Close</button>
+          <button id="closeContactModalBtn" class="secondary-button">
+            Close
+          </button>
         </div>
       </div>
     </div>
 
-    <script src="main.js" defer></script>
-</body>
+    <script src="mock-extension.js?v=2"></script>
+    <script src="main.js?v=2" defer></script>
+  </body>
 </html>
