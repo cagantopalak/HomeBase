@@ -159,6 +159,15 @@ const savedFontFamily = localStorage.getItem('fontFamily');
 const savedSoundVolume = parseFloat(localStorage.getItem('soundVolume')) || 0.5; // Changed from 0.06 to 0.5
 const savedTilePlacement = localStorage.getItem('tilePlacement') || 'top'; // new: 'top' or 'middle'
 
+// Helper: RGB to Hex
+function rgbToHex(rgb) {
+  if (!rgb || rgb === 'transparent' || rgb === 'rgba(0, 0, 0, 0)') return '#000000';
+  if (rgb.startsWith('#')) return rgb;
+  const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (!match) return '#000000';
+  return "#" + match.slice(1).map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+}
+
 let pendingTilePlacement = null;
 let pendingSoundVolume = null;
 let pendingShowClock = null;
@@ -970,7 +979,7 @@ function buildFolderTile(folder, index) {
     isDragging = false;
     dragStartIndex = null;
     dragCurrentIndex = null;
-    dragOverStartTime = nulls;
+    dragOverStartTime = null;
     // Ensure tiles are visible after drag finishes
     document.querySelectorAll('.tile').forEach(t => {
       t.classList.remove('dragging', 'moving', 'placeholder');
@@ -1144,6 +1153,46 @@ function dragLeave(e) {
 function drop(e) {
   e.preventDefault();
   const overIndex = +this.dataset.index;
+
+  // Handle dragging FROM a folder TO the main grid
+  if (dragFromFolder && activeFolder) {
+    if (dragStartIndex === null || dragStartIndex === undefined) return;
+
+    // Remove from folder's link array
+    const moved = activeFolder.folder.links.splice(dragStartIndex, 1)[0];
+
+    // Insert into main links array at the drop position
+    links.splice(overIndex, 0, moved);
+
+    // Reset drag state
+    dragFromFolder = false;
+    dragStartIndex = null;
+    dragOverIndex = null;
+
+    // UI Cleanup
+    document.querySelectorAll('.tile').forEach(tile => {
+      tile.classList.remove('dragging', 'moving', 'placeholder');
+    });
+
+    // Save changes
+    persist(false);
+
+    // Re-render main grid to show the moved tile
+    renderTiles();
+
+    // Refresh the open folder view (it's still open, just one less item)
+    // We need to find the new index of the folder because inserting a tile might have shifted the folder's index!
+    const newFolderIndex = links.indexOf(activeFolder.folder);
+    if (newFolderIndex !== -1) {
+      activeFolder.index = newFolderIndex;
+      openFolder(activeFolder.folder, activeFolder.index);
+    } else {
+      // Should not happen, but safe fallback
+      closeFolder();
+    }
+    return;
+  }
+
   if (overIndex === dragStartIndex) return;
 
   // Move the dragged tile to the new position
@@ -3088,20 +3137,75 @@ document.getElementById('ctxDelete').addEventListener('click', () => {
 });
 
 // Listen for messages from the popup
-if (typeof browser !== 'undefined' && browser.runtime) {
-  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+// Message listener for tile updates from Popup or Background
+const runtimeForListener = (typeof browser !== 'undefined' && browser.runtime) ? browser.runtime : ((typeof chrome !== 'undefined' && chrome.runtime) ? chrome.runtime : null);
+
+if (runtimeForListener) {
+  runtimeForListener.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'tileAdded') {
       // Refresh the tiles by getting them from storage
-      if (typeof browser !== 'undefined' && browser.storage) {
-        browser.storage.local.get('tiles').then(result => {
-          if (result.tiles) {
-            links = result.tiles;
-            renderTiles();
-          }
+      const storageApi = (typeof browser !== 'undefined' && browser.storage) ? browser.storage.local : ((typeof chrome !== 'undefined' && chrome.storage) ? chrome.storage.local : null);
+
+      if (storageApi) {
+        storageApi.get('tiles', (result) => {
+          // Handle both promise-style (Firefox/Polyfill) or callback-style results if polyfill acts up
+          const data = result || {}; // In standard Chrome, result is the obj.
+          // Note: browser.storage.local.get usually returns a Promise in pure WebExt, but here we used callbacks/polyfill
+          // If the polyfill was used, it returned a Promise in 'get' signature? 
+          // Wait, the polyfill in main.js didn't wrap 'get' to return promise? 
+          // Check line 14: browser.storage = { local: { ... } } 
+          // The polyfill in main.js: 
+          // browser.storage = { local: { get: (keys) => new Promise... } }
+          // So if we are using the polyfill, we must use .then(). 
+          // But if we are using native Chrome, we use callback.
+
+          // Let's rely on the getData wrapper or just use our polyfilled 'browser' if available, else standard.
+          // Actually, let's just stick to the existing 'links' reload logic but make it robust.
         });
+
+        // Let's just use the getData abstraction or similar.
+        if (typeof browser !== 'undefined' && browser.storage) {
+          browser.storage.local.get('tiles').then(result => {
+            if (result.tiles) {
+              links = result.tiles;
+              renderTiles();
+              // Also refresh active folder if open
+              if (activeFolder) {
+                // Find the updated folder object in new links
+                // We use index, but safely check name or just index
+                const updatedFolder = links[activeFolder.index];
+                if (updatedFolder && updatedFolder.type === 'folder') {
+                  activeFolder.folder = updatedFolder;
+                  openFolder(activeFolder.folder, activeFolder.index);
+                }
+              }
+            }
+          });
+        } else if (typeof chrome !== 'undefined' && chrome.storage) {
+          chrome.storage.local.get('tiles', (result) => {
+            if (result.tiles) {
+              links = result.tiles;
+              renderTiles();
+              if (activeFolder) {
+                const updatedFolder = links[activeFolder.index];
+                if (updatedFolder && updatedFolder.type === 'folder') {
+                  activeFolder.folder = updatedFolder;
+                  openFolder(activeFolder.folder, activeFolder.index);
+                }
+              }
+            }
+          });
+        }
       } else {
         links = JSON.parse(localStorage.getItem("tiles") || "[]");
         renderTiles();
+        if (activeFolder) {
+          const updatedFolder = links[activeFolder.index];
+          if (updatedFolder && updatedFolder.type === 'folder') {
+            activeFolder.folder = updatedFolder;
+            openFolder(activeFolder.folder, activeFolder.index);
+          }
+        }
       }
       sendResponse({ success: true });
     }
@@ -3433,6 +3537,18 @@ function renderStickyNotes() {
       anchorBtn.innerHTML = note.isAnchored ? '⚓' : '🔓';
       anchorBtn.title = note.isAnchored ? 'Unanchor' : 'Anchor';
       anchorBtn.style.color = note.isAnchored ? '#000' : '';
+
+      // Update docking state immediately
+      if (note.isAnchored) {
+        content.contentEditable = false;
+        titleEl.contentEditable = false; // Disable title editing
+        noteEl.classList.add('docked');
+      } else {
+        content.contentEditable = true;
+        titleEl.contentEditable = true; // Enable title editing
+        noteEl.classList.remove('docked');
+      }
+
       saveStickyNotes();
     });
 
@@ -3460,6 +3576,18 @@ function renderStickyNotes() {
     content.style.color = note.textColor || '#000000';
     content.style.fontSize = (note.fontSize || 16) + 'px';
     content.style.fontFamily = note.fontFamily || "'Roboto', sans-serif";
+    content.spellcheck = false; // Disable spellcheck
+
+    // Docking Logic: if anchored, content is not editable
+    if (note.isAnchored) {
+      content.contentEditable = false;
+      titleEl.contentEditable = false;
+      noteEl.classList.add('docked');
+    } else {
+      content.contentEditable = true;
+      titleEl.contentEditable = true;
+      noteEl.classList.remove('docked');
+    }
 
     content.addEventListener('input', (e) => {
       note.content = content.innerHTML;
@@ -3709,6 +3837,8 @@ function showFormattingMenu(x, y, targetElement) {
     { label: 'Checklist', icon: '☑', cmd: 'checklist' }
   ];
 
+
+
   actions.forEach(action => {
     if (action.separator) {
       const sep = document.createElement('div');
@@ -3755,6 +3885,109 @@ function showFormattingMenu(x, y, targetElement) {
     });
     menu.appendChild(btn);
   });
+
+  // Color Rows Container
+  const colorContainer = document.createElement('div');
+  colorContainer.className = 'formatting-menu-colors';
+
+  // Helper to create Toggle+Picker Row
+  const createColorRow = (label, toolTip, cmd, isHighlight) => {
+    // Get current value
+    let isActive = false;
+    let currentHex = '#000000'; // Default black
+
+    if (isHighlight) {
+      // Highlight Logic: Check for explicit background color on ancestors
+      // queryCommandValue('hiliteColor') is unreliable as it often returns the paper color
+      currentHex = 'transparent'; // Default transparent
+      const selection = window.getSelection();
+      if (selection.rangeCount > 0) {
+        let node = selection.anchorNode;
+        // Traverse up to find a span with background-color
+        // Limit traversal to avoid going too far up (e.g. to sticky-note-content)
+        while (node && (node.nodeType === 1 || (node.nodeType === 3 && node.parentElement))) {
+          const el = node.nodeType === 1 ? node : node.parentElement;
+          if (el.classList.contains('sticky-note-content')) break;
+          if (el.style.backgroundColor && el.style.backgroundColor !== 'transparent' && el.style.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+            currentHex = rgbToHex(el.style.backgroundColor);
+            isActive = true;
+            break;
+          }
+          node = el.parentElement;
+        }
+      }
+    } else {
+      // Text Color Logic
+      const rawValue = document.queryCommandValue('foreColor');
+      currentHex = rgbToHex(rawValue);
+      isActive = currentHex !== '#000000';
+    }
+
+    const row = document.createElement('div');
+    row.className = 'formatting-menu-color-row';
+
+    // Toggle Label Button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = `formatting-menu-color-toggle ${isActive ? 'active' : ''}`;
+    // When inactive, cursor should be default or pointer? User implies it's "not toggleable"
+    // We will style inactive as simple label, active as "pressed/clickable"
+    toggleBtn.innerHTML = `<span>${label}</span>`;
+    toggleBtn.title = isActive ? `Remove ${toolTip}` : toolTip;
+
+    // Color Picker Input Container (for circular style)
+    const pickerContainer = document.createElement('div');
+    pickerContainer.className = 'formatting-menu-picker-container';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'formatting-menu-color-picker';
+    // If transparent (highlight default), input color should be black per user request.
+    colorInput.value = (isHighlight && currentHex === 'transparent') ? '#000000' : currentHex;
+    colorInput.title = `Change ${toolTip}`;
+
+    pickerContainer.appendChild(colorInput);
+
+    // Interaction Logic
+
+    // 1. Picking a color applies it immediately and sets active
+    colorInput.addEventListener('input', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      execFormat(cmd, e.target.value, targetElement);
+      // Manually update state
+      toggleBtn.classList.add('active');
+      toggleBtn.title = `Remove ${toolTip}`;
+    });
+
+    // 2. Clicking Toggle
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (toggleBtn.classList.contains('active')) {
+        // Turn OFF -> Reset to default
+        const defaultVal = isHighlight ? 'transparent' : '#000000';
+        execFormat(cmd, defaultVal, targetElement);
+        toggleBtn.classList.remove('active');
+        toggleBtn.title = toolTip;
+      } else {
+        // Inactive: Do nothing (or strictly, user said "becomes toggleble... to indicate I can undo it")
+        // So clicking label when inactive implies no action. 
+        // Usage is: Pick color -> Active. Then Click label -> Removed.
+      }
+    });
+
+    row.appendChild(toggleBtn);
+    row.appendChild(pickerContainer);
+    return row;
+  };
+
+  const sep = document.createElement('div');
+  sep.className = 'formatting-menu-separator';
+  menu.appendChild(sep);
+
+  menu.appendChild(createColorRow('Text', 'Text Color', 'foreColor', false));
+  menu.appendChild(createColorRow('Highlight', 'Highlight Color', 'hiliteColor', true));
 
   document.body.appendChild(menu);
   activeFormattingMenu = menu;

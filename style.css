@@ -74,6 +74,11 @@ body {
   justify-content: center;
   padding-top: 50px;
   height: 100vh;
+  /* Disable global selection as requested */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
   transition: filter 0.3s ease;
 }
 
@@ -1792,6 +1797,10 @@ select option {
   outline: none;
   box-sizing: border-box;
   line-height: 1.4;
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  /* Allow selection for undocked notes content only */
 }
 
 /* Custom scrollbar for note content */
@@ -2080,4 +2089,128 @@ select option {
 .sticky-note-content ul.checklist li.checked {
   text-decoration: line-through;
   opacity: 0.6;
+}
+
+/* Docked Sticky Note Styles */
+.sticky-note.docked .sticky-note-resizer {
+  display: none !important;
+}
+
+/* Docked Note: Disable Hover Animation */
+.sticky-note.docked:hover {
+  transform: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  /* Keep default shadow, no lift */
+}
+
+/* Ensure docked content is strictly unselectable */
+.sticky-note.docked .sticky-note-content,
+.sticky-note.docked .sticky-note-title {
+  user-select: none !important;
+  cursor: default;
+}
+
+/* Ensure undocked notes ARE selectable (redundant but safe) */
+.sticky-note:not(.docked) .sticky-note-content {
+  user-select: text;
+}
+
+.sticky-note.docked .sticky-note-content {
+  cursor: default;
+  /* Show normal cursor instead of text entry cursor */
+  user-select: none;
+  /* Strictly disable selection when docked */
+  /* Allow text selection even if not editable? */
+  background: rgba(0, 0, 0, 0.02);
+  /* Slight visual cue? Optional */
+}
+
+/* Strict Docking: Hide controls except Anchor */
+.sticky-note.docked .sticky-note-btn {
+  display: none;
+}
+
+.sticky-note.docked .sticky-note-btn.anchor-btn {
+  display: block;
+  /* Keep anchor visible */
+}
+
+/* New Context Menu Styles */
+.formatting-menu-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.formatting-menu-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  justify-content: space-between;
+}
+
+.formatting-menu-color-toggle {
+  flex-grow: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 8px;
+  cursor: default;
+  /* Default cursor for inactive */
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.formatting-menu-color-toggle:hover {
+  /* No hover effect for inactive state per request */
+  background: transparent !important;
+}
+
+.formatting-menu-color-toggle.active {
+  background: rgba(255, 255, 255, 0.2);
+  /* Pressed look */
+  color: #fff;
+  cursor: pointer;
+  /* Clickable to remove */
+  font-weight: 600;
+}
+
+.formatting-menu-color-toggle.active:hover {
+  background: rgba(255, 255, 255, 0.3);
+  /* Stronger hover for remove action */
+  /* text-decoration: line-through; */
+}
+
+/* Circular Picker Container */
+.formatting-menu-picker-container {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.formatting-menu-picker-container:hover {
+  transform: scale(1.1);
+  border-color: #fff;
+}
+
+.formatting-menu-color-picker {
+  width: 150%;
+  height: 150%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
 }
