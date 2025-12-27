@@ -1,14 +1,14 @@
 /* === CSS VARIABLES === */
 :root {
-  --tile-label-color: #FFFFFF;
+  --tile-label-color: #ffffff;
   --tile-bg-color: rgba(255, 255, 255, 0.4);
   --tile-border-color: rgba(255, 255, 255, 0.5);
   --tile-border-width: 0px;
-  --tile-label-font-family: 'Roboto', sans-serif;
+  --tile-label-font-family: "Roboto", sans-serif;
 
   /* REWRITTEN CLOCK CSS VARIABLES STARTS HERE */
-  --clock-display-color: #FFFFFF;
-  --clock-display-font-family: 'Climate Crisis', cursive;
+  --clock-display-color: #ffffff;
+  --clock-display-font-family: "Climate Crisis", cursive;
   --clock-font-size: 4em;
   --clock-position: left;
   /* 'left' or 'right' - JS will add classes for positioning */
@@ -26,7 +26,7 @@
   --placeholder-color-dark: rgba(255, 255, 255, 0.6);
   --toggle-off-bg: rgba(255, 255, 255, 0.2);
   --toggle-on-bg: #6366f1;
-  --button-primary-bg: #007BFF;
+  --button-primary-bg: #007bff;
   --button-primary-hover: #0069d9;
   --button-secondary-bg: rgba(255, 255, 255, 0.15);
   --button-secondary-hover: rgba(255, 255, 255, 0.25);
@@ -50,7 +50,6 @@
   --button-export-hover-border: rgba(0, 128, 0, 0.6);
 }
 
-
 /* === BASE STYLES === */
 * {
   box-sizing: border-box;
@@ -60,7 +59,7 @@ html,
 body {
   height: 100%;
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /* Set a consistent root font-size so rem units compute consistently */
@@ -82,7 +81,7 @@ body {
   transition: filter 0.3s ease;
 }
 
-body.modal-open>*:not(.modal) {
+body.modal-open > *:not(.modal) {
   filter: brightness(0.7) blur(5px);
   pointer-events: none;
 }
@@ -126,7 +125,7 @@ body.modal-open {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
   will-change: transform, box-shadow;
-  transition: transform 0.18s cubic-bezier(.4, 2, .6, 1), box-shadow 0.18s;
+  transition: transform 0.18s cubic-bezier(0.4, 2, 0.6, 1), box-shadow 0.18s;
 }
 
 .tile.dragging {
@@ -257,8 +256,6 @@ body.modal-open {
   transition: all 0.2s ease;
 }
 
-
-
 .input-group input {
   background: var(--input-bg-dark);
   border: 1px solid var(--input-border-dark);
@@ -295,8 +292,6 @@ body.modal-open {
   margin-bottom: 10px;
   font-weight: 500;
 }
-
-
 
 #folderModal input:not([type="color"]),
 #stickyNoteSettingsModal input:not([type="color"]) {
@@ -374,7 +369,11 @@ body.modal-open {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.02)
+  );
   color: #ffffff;
   margin: 12px 0;
 }
@@ -471,7 +470,6 @@ input[type="range"]:focus {
   outline: none;
 }
 
-
 #pinModal p {
   color: rgba(255, 255, 255, 0.85);
   margin: 0 0 12px 0;
@@ -525,21 +523,26 @@ input[type="range"]:focus {
 
 .setting-group {
   /* Luxurious card styling applied globally to settings groups */
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.01)
+  );
   border-radius: 14px;
   padding: 18px 18px 16px 18px;
   margin-bottom: 18px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 14px;
   position: relative;
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 200ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease,
+    border-color 200ms ease;
   overflow: visible;
   /* Allow dropdowns to extend outside */
 }
-
 
 .setting-group-title {
   position: absolute;
@@ -598,7 +601,6 @@ input[type="range"]:focus {
 .setting-group.dense-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.16);
 }
-
 
 .setting-group label {
   display: flex;
@@ -678,7 +680,6 @@ input[type="range"]:focus {
   /* container height to allow vertical centering */
 }
 
-
 .setting-group input[type="range"] {
   /* This rule applies to other range inputs (e.g., clock size). Keep layout but
      avoid forcing a background so the cross-browser pseudo-element styling
@@ -704,7 +705,6 @@ input[type="range"]:focus {
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
-
 .setting-group input[type="checkbox"] {
   width: 42px;
   height: 24px;
@@ -722,7 +722,7 @@ input[type="range"]:focus {
 }
 
 .setting-group input[type="checkbox"]::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 2px;
   left: 2px;
@@ -789,8 +789,6 @@ select option {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
-
-
 .setting-group .button-row {
   grid-column: 1 / -1;
   display: flex;
@@ -811,9 +809,7 @@ select option {
 }
 
 .button-row button:hover {
-
   transform: translateY(-1px);
-
 }
 
 .reset-button {
@@ -857,8 +853,6 @@ select option {
   box-shadow: 0 4px 8px rgba(99, 255, 120, 0.6);
 }
 
-
-
 /* Style for file input and its associated button */
 .background-input-row {
   display: flex;
@@ -887,8 +881,6 @@ select option {
   box-shadow: 0 4px 8px rgb(93, 87, 255);
 }
 
-
-
 /* GLOBAL BUTTON STYLES FOR .button-group IN MODALS */
 /* Apply to buttons within any .modal .modal-content .button-group */
 .modal .modal-content .button-group button {
@@ -898,7 +890,6 @@ select option {
   transition: all 0.3s ease;
   cursor: pointer;
 }
-
 
 :root {
   --primary: #6366f1;
@@ -1004,12 +995,10 @@ select option {
   background: rgba(255, 255, 255, 0.1);
 }
 
-
 /* === SEARCH BAR === */
 /* Search bar removed from markup; related styles have been removed. */
 
 /* Search bar styles removed (search bar removed from HTML). */
-
 
 /* REWRITTEN CLOCK CSS STARTS HERE */
 #new-digital-clock {
@@ -1107,7 +1096,6 @@ select option {
   vertical-align: middle;
 }
 
-
 /* Contact modal specific styles */
 #contactModal .modal-content {
   max-width: 400px;
@@ -1119,7 +1107,7 @@ select option {
   padding: 12px;
   border-radius: 8px;
   margin: 20px 0;
-  font-family: 'Roboto';
+  font-family: "Roboto";
   word-break: break-all;
 }
 
@@ -1127,7 +1115,6 @@ select option {
   justify-content: center;
   gap: 10px;
 }
-
 
 /* === FOLDER STYLES === */
 .folder-tile {
@@ -1152,13 +1139,7 @@ select option {
   padding: 12px;
 }
 
-
-
 /* Replaced vendor-specific rules — use neutral styling for the color input */
-
-
-
-
 
 .folder-icon {
   width: 100%;
@@ -1176,8 +1157,6 @@ select option {
   pointer-events: none;
   cursor: default;
 }
-
-
 
 .folder-icon img {
   width: 28px;
@@ -1215,7 +1194,6 @@ select option {
   display: flex;
   flex-direction: column;
 }
-
 
 .folder-content {
   padding: 20px;
@@ -1362,7 +1340,6 @@ select option {
   gap: 6px;
   background: rgba(108, 99, 255, 0.3);
   color: #8a85ff;
-
 }
 
 .contact-button:hover {
@@ -1384,7 +1361,6 @@ select option {
   background: rgba(75, 255, 108, 0.3);
   color: white;
   box-shadow: 0 2px 6px rgba(41, 129, 54, 0.3);
-
 }
 
 #siteModal #saveSite:hover {
@@ -1528,7 +1504,8 @@ select option {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 16px;
   position: relative;
-  transition: max-height 320ms cubic-bezier(.2, .9, .2, 1), opacity 260ms ease, padding-top 260ms ease, overflow 0s 0s;
+  transition: max-height 320ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    opacity 260ms ease, padding-top 260ms ease, overflow 0s 0s;
 }
 
 .setting-group.open .collapsible-content {
@@ -1537,7 +1514,8 @@ select option {
   opacity: 1;
   padding-top: 10px;
   overflow: visible;
-  transition: max-height 320ms cubic-bezier(.2, .9, .2, 1), opacity 260ms ease, padding-top 260ms ease, overflow 0s 0.32s;
+  transition: max-height 320ms cubic-bezier(0.2, 0.9, 0.2, 1),
+    opacity 260ms ease, padding-top 260ms ease, overflow 0s 0.32s;
 }
 
 .setting-group.open .collapsible-arrow {
@@ -1559,12 +1537,18 @@ select option {
 
 /* Luxurious styles specifically for the clock settings group */
 #clockSettingsGroup {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.02)
+  );
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
   border-radius: 14px;
   padding: 12px 14px;
-  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transition: transform 220ms ease, box-shadow 220ms ease,
+    border-color 220ms ease;
   cursor: pointer;
   /* make whole group clickable */
 }
@@ -1572,7 +1556,8 @@ select option {
 #clockSettingsGroup:hover {
   /* No visual change on hover per user preference */
   transform: none;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.02);
   border-color: rgba(255, 255, 255, 0.06);
 }
 
@@ -1596,7 +1581,7 @@ select option {
   font-size: 14px;
   color: var(--text-secondary);
   transform-origin: center;
-  transition: transform 280ms cubic-bezier(.2, .9, .2, 1), color 180ms;
+  transition: transform 280ms cubic-bezier(0.2, 0.9, 0.2, 1), color 180ms;
 }
 
 .setting-group.open .collapsible-arrow {
@@ -1619,7 +1604,7 @@ select option {
   position: relative;
   width: 130px;
   /* Fixed width for consistency */
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   user-select: none;
 }
 
@@ -1791,7 +1776,7 @@ select option {
   background: transparent;
   resize: none;
   padding: 10px;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 16px;
   color: #000;
   outline: none;
@@ -1858,7 +1843,11 @@ select option {
 
 /* Decorative diagonal grip lines */
 .sticky-note-resizer {
-  background-image: repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.16) 0 2px, transparent 2px 4px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.16) 0 2px,
+    transparent 2px 4px
+  );
 }
 
 /* When actively resizing, make handle a bit larger for better control */
@@ -2030,7 +2019,7 @@ select option {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .formatting-menu button:hover {
@@ -2065,7 +2054,7 @@ select option {
 }
 
 .sticky-note-content ul.checklist li::before {
-  content: '☐';
+  content: "☐";
   position: absolute;
   left: 0;
   top: 0;
@@ -2081,7 +2070,7 @@ select option {
 }
 
 .sticky-note-content ul.checklist li.checked::before {
-  content: '☑';
+  content: "☑";
   color: #2e7d32;
   /* Green */
 }
@@ -2213,4 +2202,37 @@ select option {
   background: none;
   cursor: pointer;
   padding: 0;
+}
+
+/* === PULSE CIRCLE === */
+.green-pulse-circle {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 15px;
+  height: 15px;
+  background-color: #2ecc71;
+  border-radius: 50%;
+  z-index: 10000;
+  box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+  animation: pulse-green 2s infinite;
+  pointer-events: none;
+  /* Let clicks pass through */
+}
+
+@keyframes pulse-green {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+  }
 }
