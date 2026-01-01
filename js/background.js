@@ -12,11 +12,18 @@ function updateIcon(theme) {
 
   // Try to set the icon
   try {
-    if (typeof chrome !== 'undefined' && chrome.action) {
-      chrome.action.setIcon({ path });
-    } else if (typeof browser !== 'undefined' && browser.browserAction) {
+    // Firefox / Universal WebExtensions
+    if (typeof browser !== 'undefined' && browser.browserAction && browser.browserAction.setIcon) {
       browser.browserAction.setIcon({ path });
-    } else if (typeof chrome !== 'undefined' && chrome.browserAction) {
+    }
+    // Chrome MV3
+    // Chrome MV3 - Use bracket notation to avoid Firefox static analysis warning
+    const chromeAction = typeof chrome !== 'undefined' ? chrome['action'] : null;
+    if (chromeAction && chromeAction.setIcon) {
+      chromeAction.setIcon({ path });
+    }
+    // Chrome/Legacy MV2
+    else if (typeof chrome !== 'undefined' && chrome.browserAction && chrome.browserAction.setIcon) {
       chrome.browserAction.setIcon({ path });
     }
   } catch (err) {

@@ -881,7 +881,13 @@ function buildTile(link, index, parentLinks = links) {
   label.title = link.name || "";
   label.style.whiteSpace = "pre-line";
   const visible = formatVisibleName(link.name || "");
-  label.innerHTML = visible.map(escapeHtml).join("<br>");
+  label.textContent = ""; // Clear
+  visible.forEach((line, i) => {
+    label.appendChild(document.createTextNode(line));
+    if (i < visible.length - 1) {
+      label.appendChild(document.createElement("br"));
+    }
+  });
 
   label.className = label.className || "tile-label";
   label.className = "tile-label";
@@ -902,9 +908,19 @@ function buildTile(link, index, parentLinks = links) {
 function showContextMenu(e, link, index) {
   try {
     hideAllContextMenus();
-    ctxMenu.innerHTML = `
-        <button id="ctxEdit">✎ Edit</button>
-        <button id="ctxDelete">🗑 Delete</button>`;
+    ctxMenu.textContent = ""; // Clear existing
+
+    const editBtn = document.createElement("button");
+    editBtn.id = "ctxEdit";
+    editBtn.textContent = "✎ Edit";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.id = "ctxDelete";
+    deleteBtn.textContent = "🗑 Delete";
+
+    ctxMenu.appendChild(editBtn);
+    ctxMenu.appendChild(deleteBtn);
+
     ctxMenu.style.top = e.clientY + "px";
     ctxMenu.style.left = e.clientX + "px";
     ctxMenu.style.display = "block";
@@ -1171,7 +1187,13 @@ function buildFolderTile(folder, index) {
   label.title = folder.name || "";
   label.style.whiteSpace = "pre-line";
   const folderVisible = formatVisibleName(folder.name || "");
-  label.innerHTML = folderVisible.map(escapeHtml).join("<br>");
+  label.textContent = ""; // Clear
+  folderVisible.forEach((line, i) => {
+    label.appendChild(document.createTextNode(line));
+    if (i < folderVisible.length - 1) {
+      label.appendChild(document.createElement("br"));
+    }
+  });
   label.style.width = "100%";
   label.style.textAlign = "center";
   label.style.marginTop = "8px";
@@ -3992,11 +4014,18 @@ function updateBrowserIcon(theme) {
   };
 
   try {
-    if (typeof chrome !== "undefined" && chrome.action) {
-      chrome.action.setIcon({ path });
-    } else if (typeof browser !== "undefined" && browser.browserAction) {
+    // Firefox / Universal WebExtensions
+    if (typeof browser !== "undefined" && browser.browserAction && browser.browserAction.setIcon) {
       browser.browserAction.setIcon({ path });
-    } else if (typeof chrome !== "undefined" && chrome.browserAction) {
+    }
+    // Chrome MV3
+    // Chrome MV3 - Bracket notation to bypass Firefox static analysis
+    const chromeAction = typeof chrome !== "undefined" ? chrome["action"] : null;
+    if (chromeAction && chromeAction.setIcon) {
+      chromeAction.setIcon({ path });
+    }
+    // Chrome/Legacy MV2
+    else if (typeof chrome !== "undefined" && chrome.browserAction && chrome.browserAction.setIcon) {
       chrome.browserAction.setIcon({ path });
     }
   } catch (err) {

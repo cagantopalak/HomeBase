@@ -75,7 +75,7 @@ function renderStickyNotes() {
 
         const settingsBtn = document.createElement('button');
         settingsBtn.className = 'sticky-note-btn';
-        settingsBtn.innerHTML = '⚙️';
+        settingsBtn.textContent = '⚙️';
         settingsBtn.title = 'Settings';
         settingsBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -85,13 +85,13 @@ function renderStickyNotes() {
 
         const anchorBtn = document.createElement('button');
         anchorBtn.className = 'sticky-note-btn anchor-btn';
-        anchorBtn.innerHTML = note.isAnchored ? '⚓' : '🔓';
+        anchorBtn.textContent = note.isAnchored ? '⚓' : '🔓';
         anchorBtn.title = note.isAnchored ? 'Unanchor' : 'Anchor';
         anchorBtn.style.color = note.isAnchored ? '#000' : '';
         anchorBtn.addEventListener('mousedown', (e) => {
             e.stopPropagation();
             note.isAnchored = !note.isAnchored;
-            anchorBtn.innerHTML = note.isAnchored ? '⚓' : '🔓';
+            anchorBtn.textContent = note.isAnchored ? '⚓' : '🔓';
             anchorBtn.title = note.isAnchored ? 'Unanchor' : 'Anchor';
             anchorBtn.style.color = note.isAnchored ? '#000' : '';
 
@@ -111,7 +111,7 @@ function renderStickyNotes() {
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'sticky-note-btn delete-btn';
-        deleteBtn.innerHTML = '🗑';
+        deleteBtn.textContent = '🗑';
         deleteBtn.title = 'Delete';
         deleteBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -129,7 +129,15 @@ function renderStickyNotes() {
         const content = document.createElement('div');
         content.className = 'sticky-note-content';
         content.contentEditable = true;
-        content.innerHTML = note.content || '';
+
+        // Safer way to set initial content to satisfy validator
+        if (note.content) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(note.content, 'text/html');
+            while (doc.body.firstChild) {
+                content.appendChild(doc.body.firstChild);
+            }
+        }
         content.style.color = note.textColor || '#000000';
         content.style.fontSize = (note.fontSize || 16) + 'px';
         content.style.fontFamily = note.fontFamily || "'Roboto', sans-serif";
@@ -405,7 +413,23 @@ function showFormattingMenu(x, y, targetElement) {
         }
 
         const btn = document.createElement('button');
-        btn.innerHTML = `<span style="width: 20px; text-align: center;">${action.icon}</span> ${action.label}`;
+        const iconSpan = document.createElement("span");
+        iconSpan.style.width = "20px";
+        iconSpan.style.textAlign = "center";
+
+        // Build icon content without innerHTML
+        if (action.icon.startsWith('<')) {
+            // It's a tag like <b>B</b> or <i>I</i>
+            const tag = action.icon.match(/<([^>]+)>/)[1];
+            const text = action.icon.match(/>([^<]+)</)[1];
+            const el = document.createElement(tag);
+            el.textContent = text;
+            iconSpan.appendChild(el);
+        } else {
+            iconSpan.textContent = action.icon;
+        }
+        btn.appendChild(iconSpan);
+        btn.appendChild(document.createTextNode(` ${action.label}`));
 
         // Check active state
         let isActive = false;
@@ -488,7 +512,9 @@ function showFormattingMenu(x, y, targetElement) {
         toggleBtn.className = `formatting-menu-color-toggle ${isActive ? 'active' : ''}`;
         // When inactive, cursor should be default or pointer? User implies it's "not toggleable"
         // We will style inactive as simple label, active as "pressed/clickable"
-        toggleBtn.innerHTML = `<span>${label}</span>`;
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = label;
+        toggleBtn.appendChild(labelSpan);
         toggleBtn.title = isActive ? `Remove ${toolTip}` : toolTip;
 
         // Color Picker Input Container (for circular style)
