@@ -6,8 +6,8 @@ function updateIcon(theme) {
   // Light mode -> Dark icons
   const suffix = isDark ? 'white' : 'dark';
   const path = {
-    16: `icons/icon16${suffix}.png`,
-    32: `icons/icon32${suffix}.png`
+    16: `/icons/icon16${suffix}.png`,
+    32: `/icons/icon32${suffix}.png`
   };
 
   // Try to set the icon
