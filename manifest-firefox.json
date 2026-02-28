@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "HomeBase",
-    "version": "6.6",
+    "version": "2.0",
     "description": "Loads HomeBase as the new tab and homepage.",
     "chrome_url_overrides": {
         "newtab": "newtab.html"
@@ -12,7 +12,8 @@
     "permissions": [
         "activeTab",
         "tabs",
-        "storage"
+        "storage",
+        "https://homebase.birtik.co/*"
     ],
     "background": {
         "scripts": [
@@ -35,7 +36,7 @@
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
     },
-    "content_security_policy": "script-src 'self'; object-src 'self'",
+    "content_security_policy": "script-src 'self'; object-src 'self'; connect-src 'self' https://homebase.birtik.co",
     "browser_specific_settings": {
         "gecko": {
             "id": "cagantshomepage@gmail.com",

@@ -324,7 +324,7 @@ const audioCtx = new AudioContext();
 // Otherwise, the actual audio volume is the saved value.
 let savedSliderValue = parseFloat(localStorage.getItem("soundVolume"));
 let currentVolume =
-  isNaN(savedSliderValue) || savedSliderValue < 0 ? 0.5 : savedSliderValue; // Changed from 0 to 0.5
+  isNaN(savedSliderValue) || savedSliderValue < 0 ? 0.2 : savedSliderValue; // Default to 0.2 for softer start
 
 // Immediately suspend if volume is 0 on load
 if (currentVolume === 0 && audioCtx.state === "running") {
@@ -343,7 +343,7 @@ function playTone(freq, dur) {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.frequency.value = freq;
-        gain.gain.value = currentVolume; // Use currentVolume for gain
+        gain.gain.value = currentVolume * currentVolume; // Use squared value for log-like volume feel
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
@@ -358,7 +358,7 @@ function playTone(freq, dur) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.frequency.value = freq;
-    gain.gain.value = currentVolume; // Use currentVolume for gain
+    gain.gain.value = currentVolume * currentVolume; // Use squared value for log-like volume feel
     osc.connect(gain);
     gain.connect(audioCtx.destination);
     osc.start();
@@ -910,14 +910,19 @@ function showContextMenu(e, link, index) {
     hideAllContextMenus();
     ctxMenu.textContent = ""; // Clear existing
 
+    const openBtn = document.createElement("button");
+    openBtn.id = "ctxOpen";
+    openBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Link in New Tab`;
+
     const editBtn = document.createElement("button");
     editBtn.id = "ctxEdit";
-    editBtn.textContent = "✎ Edit";
+    editBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Edit`;
 
     const deleteBtn = document.createElement("button");
     deleteBtn.id = "ctxDelete";
-    deleteBtn.textContent = "🗑 Delete";
+    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete`;
 
+    ctxMenu.appendChild(openBtn);
     ctxMenu.appendChild(editBtn);
     ctxMenu.appendChild(deleteBtn);
 
@@ -925,8 +930,15 @@ function showContextMenu(e, link, index) {
     ctxMenu.style.left = e.clientX + "px";
     ctxMenu.style.display = "block";
 
+    const openBtnEl = document.getElementById("ctxOpen");
     const editBtnEl = document.getElementById("ctxEdit");
     const delBtnEl = document.getElementById("ctxDelete");
+
+    if (openBtnEl)
+      openBtnEl.onclick = () => {
+        window.open(link.url, '_blank');
+        hideAllContextMenus();
+      };
     if (editBtnEl)
       editBtnEl.onclick = () => {
         window.editSite(index);
@@ -1638,11 +1650,17 @@ function openFolder(folder, index) {
       e.preventDefault();
       hideAllContextMenus();
       ctxMenu.innerHTML = `
-        <button id="ctxEdit">✎ Edit</button>
-        <button id="ctxDelete">🗑 Delete</button>`;
+        <button id="ctxOpen"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Link in New Tab</button>
+        <button id="ctxEdit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Edit</button>
+        <button id="ctxDelete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>`;
       ctxMenu.style.top = e.clientY + "px";
       ctxMenu.style.left = e.clientX + "px";
       ctxMenu.style.display = "block";
+
+      document.getElementById("ctxOpen").onclick = () => {
+        window.open(link.url, '_blank');
+        hideAllContextMenus();
+      };
 
       document.getElementById("ctxEdit").onclick = () => {
         nameInput.value = link.name;
@@ -1678,7 +1696,24 @@ function openFolder(folder, index) {
   });
 
   innerBubble.appendChild(folderLinksContainer);
+
+  // Add context menu for the empty space in the folder bubble
+  innerBubble.addEventListener("contextmenu", (e) => {
+    // Ignore if right-clicking on a tile (tiles have their own context menus)
+    if (e.target.closest(".tile")) return;
+
+    e.preventDefault();
+    showFolderContextMenu(e, folder, index);
+  });
+
   folderBubble.appendChild(innerBubble);
+
+  // Dynamically adjust the radial gradient size depending on how many tiles are in the folder
+  const tileCount = folder.links ? folder.links.length : 0;
+  // Starting size is 20%, and it grows 3.5% per tile, with a max limit of 65%
+  const gradientSize = Math.min(10 + (tileCount * 3.5), 50);
+
+  folderOverlay.style.background = `radial-gradient(ellipse at center, rgba(30, 30, 35, 0.8) ${gradientSize}%, rgba(10, 10, 12, 0.1) 100%)`;
   folderOverlay.style.display = "block";
   folderBubble.style.display = "block";
 }
@@ -1872,8 +1907,8 @@ function showFolderContextMenu(e, folder, index) {
   hideAllContextMenus();
 
   ctxMenu.innerHTML = `
-        <button id="ctxEdit">✎ Edit</button>
-        <button id="ctxDelete">🗑 Delete</button>
+        <button id="ctxEdit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Edit</button>
+        <button id="ctxDelete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>
     `;
   ctxMenu.style.top = e.clientY + "px";
   ctxMenu.style.left = e.clientX + "px";
@@ -2721,6 +2756,38 @@ setupCustomDropdown("clockPositionDropdown", "clockPositionSelect", (value) => {
   }
 });
 
+// Setup Atmosphere Compact Strip
+const initialAtmosphere = localStorage.getItem("atmosphereEffect") || "none";
+const atmosphereBtns = document.querySelectorAll(".atmosphere-compact-btn");
+
+if (atmosphereBtns.length > 0) {
+  atmosphereBtns.forEach(btn => {
+    if (btn.dataset.effect === initialAtmosphere) {
+      btn.classList.add("active");
+    }
+
+    btn.addEventListener("click", () => {
+      const effectName = btn.dataset.effect;
+
+      // Update UI
+      atmosphereBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // Apply Effect
+      if (window.effectManager) {
+        window.effectManager.setEffect(effectName);
+      }
+
+      localStorage.setItem("atmosphereEffect", effectName);
+    });
+  });
+}
+
+// Immediately apply initial atmosphere effect
+if (window.effectManager) {
+  window.effectManager.setEffect(initialAtmosphere);
+}
+
 function refreshCustomDropdown(dropdownId, hiddenInputId) {
   const dropdown = document.getElementById(dropdownId);
   const hiddenInput = document.getElementById(hiddenInputId);
@@ -2917,6 +2984,7 @@ resetAllSettingsOnlyBtn.addEventListener("click", () => {
         localStorage.removeItem("showSeconds");
         localStorage.removeItem("tilePlacement");
         localStorage.removeItem("tileBorderWidth");
+        localStorage.removeItem("atmosphereEffect");
 
         // Also remove from browser.storage if available
         if (typeof browser !== "undefined" && browser.storage) {
@@ -2934,6 +3002,7 @@ resetAllSettingsOnlyBtn.addEventListener("click", () => {
             "hasSeenWelcome",
             "clockSize",
             "clockPosition",
+            "atmosphereEffect",
           ]);
         } else {
           localStorage.removeItem("customBackground");
@@ -2993,8 +3062,8 @@ exportAllSettingsAndLinksBtn.addEventListener("click", () => {
               clockFormat: localStorage.getItem("clockFormat"),
               showSeconds: localStorage.getItem("showSeconds"),
               clockSize: localStorage.getItem("clockSize"),
-              clockSize: localStorage.getItem("clockSize"),
               clockPosition: localStorage.getItem("clockPosition"),
+              atmosphereEffect: localStorage.getItem("atmosphereEffect") || "none",
             },
             stickyNotes:
               result.stickyNotes ||
@@ -3022,6 +3091,7 @@ exportAllSettingsAndLinksBtn.addEventListener("click", () => {
         showSeconds: localStorage.getItem("showSeconds"),
         clockSize: localStorage.getItem("clockSize"),
         clockPosition: localStorage.getItem("clockPosition"),
+        atmosphereEffect: localStorage.getItem("atmosphereEffect") || "none",
       },
     });
   };
@@ -3052,6 +3122,7 @@ exportAllSettingsOnlyBtn.addEventListener("click", () => {
       showSeconds: localStorage.getItem("showSeconds"),
       clockSize: localStorage.getItem("clockSize"),
       clockPosition: localStorage.getItem("clockPosition"),
+      atmosphereEffect: localStorage.getItem("atmosphereEffect") || "none",
     },
   };
   downloadJSON(settings, "HomeBase_Settings.json");
@@ -3194,6 +3265,24 @@ importInput.addEventListener("change", (e) => {
                     newDigitalClock.classList.add("clock-pos-right");
                   else newDigitalClock.classList.add("clock-pos-left");
                 }
+
+                // Apply atmosphere effect immediately
+                if (importedData.settings.atmosphereEffect !== undefined && window.effectManager) {
+                  const eff = importedData.settings.atmosphereEffect || "none";
+                  window.effectManager.setEffect(eff);
+                  localStorage.setItem("atmosphereEffect", eff);
+
+                  // Update atmosphere UI buttons if they exist
+                  const atmosBtns = document.querySelectorAll(".atmosphere-compact-btn");
+                  if (atmosBtns.length > 0) {
+                    atmosBtns.forEach(b => {
+                      b.classList.remove("active");
+                      if (b.dataset.effect === eff) {
+                        b.classList.add("active");
+                      }
+                    });
+                  }
+                }
               }
 
               if (importedData.tiles) {
@@ -3279,6 +3368,24 @@ importInput.addEventListener("change", (e) => {
                   if (importedData.data.clockPosition === "right")
                     newDigitalClock.classList.add("clock-pos-right");
                   else newDigitalClock.classList.add("clock-pos-left");
+                }
+
+                // Apply atmosphere effect immediately
+                if (importedData.data.atmosphereEffect !== undefined && window.effectManager) {
+                  const eff = importedData.data.atmosphereEffect || "none";
+                  window.effectManager.setEffect(eff);
+                  localStorage.setItem("atmosphereEffect", eff);
+
+                  // Update atmosphere UI buttons if they exist
+                  const atmosBtns = document.querySelectorAll(".atmosphere-compact-btn");
+                  if (atmosBtns.length > 0) {
+                    atmosBtns.forEach(b => {
+                      b.classList.remove("active");
+                      if (b.dataset.effect === eff) {
+                        b.classList.add("active");
+                      }
+                    });
+                  }
                 }
               }
               break;
@@ -3540,8 +3647,9 @@ function persistCustomBackground(bgDataUrl) {
 const ctxMenu = document.createElement("div");
 ctxMenu.className = "context-menu";
 ctxMenu.innerHTML = `
-<button id="ctxEdit">✎ Edit</button>
-<button id="ctxDelete">🗑 Delete</button>`;
+<button id="ctxOpen"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Link in New Tab</button>
+<button id="ctxEdit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Edit</button>
+<button id="ctxDelete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>`;
 document.body.appendChild(ctxMenu);
 
 let ctxIndex = null;
@@ -3561,13 +3669,21 @@ container.addEventListener("contextmenu", (e) => {
   } else {
     // Set the innerHTML for regular tile context menu
     ctxMenu.innerHTML = `
-        <button id="ctxEdit">✎ Edit</button>
-        <button id="ctxDelete">🗑 Delete</button>`;
+        <button id="ctxOpen"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open Link in New Tab</button>
+        <button id="ctxEdit"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z"/></svg> Edit</button>
+        <button id="ctxDelete"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Delete</button>`;
     ctxMenu.style.top = e.clientY + "px";
     ctxMenu.style.left = e.clientX + "px";
     ctxMenu.style.display = "block";
 
     // Attach event listeners immediately after creating the buttons
+    document.getElementById("ctxOpen").addEventListener("click", () => {
+      if (ctxIndex !== null) {
+        window.open(links[ctxIndex].url, '_blank');
+      }
+      hideAllContextMenus();
+    });
+
     document.getElementById("ctxEdit").addEventListener("click", () => {
       if (ctxIndex !== null) {
         window.editSite(ctxIndex);
@@ -3610,8 +3726,7 @@ document.addEventListener("click", (e) => {
   // Also include the new reset modal in the check
   if (
     !e.target.closest(".context-menu") &&
-    !e.target.closest(".modal") &&
-    !e.target.closest(".folder-bubble")
+    !e.target.closest(".modal")
   ) {
     hideAllContextMenus();
   }
@@ -3925,7 +4040,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupCollapsible("clockSettingsGroup");
+  // setupCollapsible("atmosphereSettingsGroup"); // Disabled: now a standard panel
+
+  // Atmosphere initialization is handled earlier in the file to avoid race conditions with DOMContentLoaded
 });
+
 
 // Add these variables at the top with other modal variables
 document.addEventListener("DOMContentLoaded", () => {
