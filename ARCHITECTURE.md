@@ -129,6 +129,29 @@ One key, `sessionCustomBackground`. Last resort when a background image fits nei
 `chrome.storage.local` nor the 150 KB `localStorage` ceiling. `loadBackground()` reads it
 between the extension store and the `localStorage` copy.
 
+## What leaves the browser
+
+Two requests, both by default.
+
+**Tile favicons.** A tile with no `icon` falls back to
+`https://www.google.com/s2/favicons?sz=64&domain_url=<hostname>`, so drawing the grid tells
+Google the hostname of every such tile, on every render. The toolbar popup fills `icon` in
+from the tab it was opened on, so tiles added that way do not make the request; tiles typed
+in by hand do.
+
+**The changelog check.** `changelog/updater.js` fetches
+`https://homebase.birtik.co/changelog.json?t=<timestamp>` on every load, once
+`hasSeenWelcome` and `hasSeenPinInstructions` are both set. It is not once per release: the
+cache buster and the lack of any other gate mean one request per new tab. The reply is
+compared against `homebase_changelog_version` in `localStorage` to decide whether to show
+the modal.
+
+The published privacy policy at `homebase.birtik.co/privacy/` says data "is stored only on
+your local device" with "no external transmission unless users enable optional features".
+Neither request above is local or optional, so the policy and the code do not currently
+agree. Nothing here changes that; it is recorded so the next person does not have to
+rediscover it.
+
 ## Data model
 
 ### Tile

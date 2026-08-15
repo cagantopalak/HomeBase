@@ -12,7 +12,25 @@ What it does:
 - Canvas background effects: snow, rain, leaves, fireflies, stars, sakura.
 - Export and import of tiles, notes and settings as JSON.
 
-Everything is stored in the browser. There is no account and no server.
+Homepage: <https://homebase.birtik.co>
+
+All of a user's data is stored in the browser. There is no account and nothing is uploaded.
+Two requests do leave the browser, though, and they are listed below.
+
+## What leaves the browser
+
+| Request | When | Carries |
+| --- | --- | --- |
+| `https://www.google.com/s2/favicons?domain_url=<hostname>` | rendering a tile that has no explicit `icon` | the hostname of that tile |
+| `https://homebase.birtik.co/changelog.json?t=<timestamp>` | every new tab, once the first-run modals have been dismissed | nothing beyond the request itself |
+
+The favicon request is per tile and per render, so a grid of tiles added by hand tells Google
+which sites are on it. Adding a tile from the toolbar popup fills in the icon from the tab,
+which avoids the request for that tile.
+
+The changelog request happens on every new tab rather than once per release. It has no body
+and carries no identifier, but it does mean the page reaches the developer's server each
+time it opens.
 
 ## Install from source
 
@@ -71,6 +89,12 @@ carries the same number.
 The Firefox build sets the floor. AMO rejects an upload whose version is lower than one
 already published, and the add-on is at 7.2.0 there, so the shared number moves forward from
 that line rather than from the Chrome manifest's older `2.0`.
+
+`changelog/changelog.json` in this repository is not what users read. The extension fetches
+the copy published at `homebase.birtik.co/changelog.json`, which is at `2.0.0` and titled
+"What's New on HomeBase 2.0". The repository copy had fallen behind at `1.0.6`. Publishing a
+number the users have not seen is what makes the modal appear, so the published file needs
+its body rewritten before it carries this version.
 
 ## Layout
 
