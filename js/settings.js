@@ -17,6 +17,9 @@
   const el = {};
   let draft = null;
 
+  // Blocks that fold away. Both start closed each time the modal opens.
+  const COLLAPSIBLE = ["clockSettingsGroup", "syncSettingsGroup"];
+
   function state() {
     return App.getState();
   }
@@ -134,17 +137,17 @@
     }
     document.querySelectorAll("input[type=range]").forEach(paintRange);
 
-    // The clock block starts collapsed however it was left last time.
-    const clockGroup = document.getElementById("clockSettingsGroup");
-    if (clockGroup) {
-      clockGroup.classList.remove("open");
-      const content = clockGroup.querySelector(".collapsible-content");
-      if (content) {
-        content.style.maxHeight = "0px";
-        content.style.opacity = "0";
-        content.style.paddingTop = "0px";
-      }
-    }
+    // The collapsible blocks start closed however they were left last time.
+    COLLAPSIBLE.forEach((id) => {
+      const group = document.getElementById(id);
+      if (!group) return;
+      group.classList.remove("open");
+      const content = group.querySelector(".collapsible-content");
+      if (!content) return;
+      content.style.maxHeight = "0px";
+      content.style.opacity = "0";
+      content.style.paddingTop = "0px";
+    });
 
     // Sync settings live outside the state object, so they are read straight from storage
     // rather than from the draft.
@@ -617,7 +620,7 @@
 
     initResets();
     initContact();
-    setupCollapsible("clockSettingsGroup");
+    COLLAPSIBLE.forEach((id) => setupCollapsible(id));
 
     // A click on the page, or a context menu opening, closes these two.
     Menu.onDismiss(() => {
