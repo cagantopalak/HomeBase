@@ -14,9 +14,19 @@
   const BASE = "http://127.0.0.1:8787";
   const WRITE_DELAY = 600;
 
+  // How long to wait before trying the event stream again after it fails, doubling each
+  // time, and how many times to bother. A bridge that is not running is the ordinary case,
+  // and the browser logs every failed attempt itself, so this gives up rather than leaving
+  // a line in the console every minute for as long as the tab is open. A write that gets
+  // through reopens it, and so does reloading, which covers the bridge being started later.
+  const FIRST_RETRY_DELAY = 5000;
+  const MAX_RETRIES = 3;
+
   let config = null;
   let stream = null;
   let writeTimer = null;
+  let retryTimer = null;
+  let streamAttempts = 0;
   // Set while a change is being applied that came from the bridge, so following it does not
   // bounce straight back as a write.
   let applyingRemote = false;
@@ -75,6 +85,12 @@
     const record = await res.json();
     config.rev = record.rev;
     await Persist.saveSync({ rev: record.rev });
+
+    // A write that got through means the bridge is back, so stop waiting out the backoff.
+    if (!stream) {
+      streamAttempts = 0;
+      openStream();
+    }
   }
 
   function schedulePush() {
@@ -98,6 +114,11 @@
     // EventSource cannot set a header, so the token goes in the query. The bridge still
     // checks the Origin, which is what keeps a web page from reading this.
     stream = new EventSource(`${BASE}/events?token=${encodeURIComponent(config.token)}`);
+
+    stream.onopen = () => {
+      streamAttempts = 0;
+    };
+
     stream.onmessage = (event) => {
       try {
         applyRecord(JSON.parse(event.data));
@@ -105,12 +126,23 @@
         quiet(err);
       }
     };
+
     stream.onerror = () => {
-      // EventSource reconnects on its own; nothing to do but stop shouting about it.
+      // Left alone, EventSource reconnects every few seconds forever, and the browser logs
+      // every failed attempt itself, which no handler here can suppress. A bridge that is
+      // simply not running would then fill the console and keep a request in flight for as
+      // long as the tab is open. Close it and come back later instead.
+      closeStream();
+      if (!enabled() || streamAttempts >= MAX_RETRIES) return;
+      const delay = FIRST_RETRY_DELAY * 2 ** streamAttempts;
+      streamAttempts += 1;
+      retryTimer = setTimeout(openStream, delay);
     };
   }
 
   function closeStream() {
+    clearTimeout(retryTimer);
+    retryTimer = null;
     if (!stream) return;
     stream.close();
     stream = null;
@@ -146,6 +178,7 @@
   async function restart() {
     closeStream();
     clearTimeout(writeTimer);
+    streamAttempts = 0;
     await start();
   }
 
