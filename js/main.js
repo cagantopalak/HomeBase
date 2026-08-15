@@ -194,6 +194,27 @@
     });
   }
 
+  /* ---------- SETTINGS TO SCREEN ---------- */
+
+  // Settings can change without anyone touching the settings modal: the bridge delivers a
+  // change made in another tab or by a tool. Reapplying them on every state change is what
+  // makes those land without a reload.
+  let appliedEffect = null;
+
+  function applySettings(state) {
+    const settings = state.settings;
+    App.applyAppearance(settings);
+    Clock.apply(settings);
+    App.applyVolume(settings.soundVolume);
+
+    // Only on a real change: setEffect restarts the animation from nothing, and this runs
+    // on every commit, including each step of a drag.
+    if (root.effectManager && settings.atmosphereEffect !== appliedEffect) {
+      appliedEffect = settings.atmosphereEffect;
+      root.effectManager.setEffect(settings.atmosphereEffect);
+    }
+  }
+
   /* ---------- START ---------- */
 
   async function start() {
@@ -215,12 +236,9 @@
     Wallpaper.init();
 
     App.adopt(loaded.state);
-    const settings = App.getSettings();
-    App.applyAppearance(settings);
-    App.applyVolume(settings.soundVolume);
-    Clock.apply(settings);
+    applySettings(App.getState());
     Clock.start();
-    if (root.effectManager) root.effectManager.setEffect(settings.atmosphereEffect);
+    App.onChange(applySettings);
 
     Tiles.render();
     Notes.render();

@@ -573,7 +573,8 @@
           .querySelectorAll(".atmosphere-compact-btn")
           .forEach((b) => b.classList.remove("active"));
         btn.classList.add("active");
-        if (root.effectManager) root.effectManager.setEffect(btn.dataset.effect);
+        // The effect is applied by the state listener in main.js, so it lands the same way
+        // whether it was picked here or arrived from the bridge.
         if (draft) draft.atmosphereEffect = btn.dataset.effect;
         App.commit(Store.setSettings(state(), { atmosphereEffect: btn.dataset.effect }));
       });
