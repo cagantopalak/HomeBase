@@ -10,32 +10,43 @@ The extension runs in three places that share no memory. They talk over
 
 ### newtab (`newtab.html`)
 
-The page that replaces the new tab. It holds nearly all of the code. Scripts load in this
-order:
+The page that replaces the new tab. It holds nearly all of the code, split across the files
+below. Two scripts run as they are parsed and the rest are deferred, which means they run in
+the order they are listed.
 
 | Script | Loading | Why |
 | --- | --- | --- |
-| `js/effects/EffectManager.js` | synchronous, in `<body>` after `<canvas id="atmosphereCanvas">` | its constructor reads the canvas, so it cannot be deferred, and the canvas must already be parsed |
-| `js/mock-extension.js` | synchronous | must define the `chrome.*` stand-in before anything reads storage |
-| `js/sticky-notes.js` | `defer` | declares `var stickyNotes`, which `main.js` fills |
-| `changelog/updater.js` | `defer` | independent |
-| `js/main.js` | `defer` | everything else |
+| `js/effects/EffectManager.js` | parsed, in `<body>` after the canvas | its constructor reads `<canvas id="atmosphereCanvas">`, so the element must already exist |
+| `js/mock-extension.js` | parsed | builds the `chrome.*` stand-in before anything reads storage |
+| `js/browser-api.js` | parsed | wraps `chrome.*` as `browser.*`, same reason |
+| `js/state.js` | deferred | the v3 shape and the migration off v2 |
+| `js/store.js` | deferred | operations on a state |
+| `js/persist.js` | deferred | loading and saving |
+| `js/app.js` | deferred | the live state, colours, dialogs, sound |
+| `js/wallpaper.js` | deferred | background image |
+| `js/clock.js` | deferred | clock |
+| `js/context-menu.js` | deferred | menus |
+| `js/tiles.js` | deferred | grid, folders, drag and drop |
+| `js/settings.js` | deferred | settings modal, export and import |
+| `js/sticky-notes.js` | deferred | notes |
+| `changelog/updater.js` | deferred | independent of everything above |
+| `js/main.js` | deferred | boot |
 
-`EffectManager.js` ends with `window.effectManager = new EffectManager()`, so the instance
-exists by the time `main.js` runs.
+Each file wraps itself in an IIFE and hangs one object off `window`, and reads the ones it
+depends on at that point, which is why the order matters.
 
-`main.js` is not a module and defines no entry point. It is a flat script: top-level
-statements run as the file is parsed, DOM elements are looked up into module-level `const`s,
-and handlers are attached inline. `window.onload` then calls `setupSoundSlider()`,
-`renderTiles()` and `showWelcomeModal()`.
+`js/main.js` loads the state, hands it to the modules, and wires what belongs to the page
+rather than to any one of them: the right click on empty space, one Escape handler, the
+toolbar icon, and the listener for the popup.
 
 ### popup (`popup.html`, `js/popup.js`)
 
-The toolbar button. Prefills a form from the active tab (`browser.tabs.query`), lets the
-user pick or name a folder, appends the tile to the `tiles` array in `chrome.storage.local`,
-then sends `{action: "tileAdded"}` so an open newtab reloads its tiles and re-renders.
+The toolbar button. Prefills a form from the active tab, lets the user pick or name a
+folder, appends the tile through the same store and the same persistence path the newtab
+page uses, then sends `{action: "tileAdded"}` so an open newtab reloads.
 
-The popup carries its own copy of the `browser` polyfill; it does not share `main.js`.
+It loads `state.js`, `store.js` and `persist.js` for that reason. Before v3 it wrote the
+`tiles` key in `chrome.storage.local` directly.
 
 ### background (`js/background.js`)
 
@@ -59,75 +70,81 @@ outside an extension. It creates `window.chrome` from nothing: `runtime`, `stora
 over `localStorage` (with an in-memory object when `localStorage` throws under `file://`),
 `tabs` and `contextMenus`. It also points `window.browser` at the same object.
 
-The block at the top of `main.js` (and its twin at the top of `popup.js`) runs when
-`browser` is undefined but `chrome` is present, that is, in Chrome. It wraps the
-callback-style `chrome.storage.local`, `chrome.tabs` and `chrome.runtime.sendMessage` in
-promises so the Firefox-flavoured `browser.*` calls in the rest of the file work unchanged.
+`js/browser-api.js` runs next and only when `browser` is undefined but `chrome` is present,
+that is, in Chrome. It wraps the callback-style `chrome.storage.local`, `chrome.tabs` and
+`chrome.runtime.sendMessage` in promises.
 
-Consequence: the codebase always calls `browser.*` and always guards with
-`typeof browser !== "undefined" && browser.storage`. In Firefox that guard passes natively,
-in Chrome through the promise wrapper, and under `file://` through the mock.
+Consequence: the codebase always calls `browser.*`. In Firefox that resolves natively, in
+Chrome through the promise wrapper, and under `file://` through the mock.
 
-## Where state lives
+## State
 
-State is split across two stores that are not kept in sync with each other. This is the
-single largest piece of accidental complexity in the tree.
+Everything the page reads is one object.
 
-### `chrome.storage.local`
+```js
+{
+  version: 3,
+  tiles: [ /* tiles and folders, in display order */ ],
+  notes: [ /* sticky notes */ ],
+  settings: { /* the 14 keys below */ }
+}
+```
 
-Three keys, and they survive a `localStorage` clear:
+`js/persist.js` writes it to **both** `chrome.storage.local` and `localStorage` under the
+key `homebaseState`, on every change. The mirror is the point: before v3 the tiles were in
+`chrome.storage.local` and every setting was in `localStorage` only, so clearing browsing
+data dropped the settings and kept the tiles.
 
-| Key | Shape |
-| --- | --- |
-| `tiles` | array of tile and folder objects |
-| `stickyNotes` | array of note objects |
-| `customBackground` | data URL string |
+Two things stay outside the object.
 
-### `localStorage`
+**The background image**, under `customBackground`, because it is a data URL of up to a few
+hundred KB and folding it in would rewrite it on every tile drag. It has its own ladder:
+`chrome.storage.local`, then `localStorage` if it is under 150 KB, then `sessionStorage`
+under `sessionCustomBackground`, and the user is told when it lands in the last one.
 
-`tiles` and `stickyNotes` are mirrored here as a fallback. `saveStickyNotes()` writes both
-stores on every call; `persist()` writes `chrome.storage.local` when it is available and
-`localStorage` only when it is not, so the `localStorage` copy of `tiles` can be stale.
+**Four flags** that were never exported and are not settings: `hasSeenWelcome`,
+`hasSeenPinInstructions`, `hasCustomBackground` and `homebase_changelog_version`. They stay
+in `localStorage`.
 
-Everything else lives here and nowhere else. Eighteen keys, all stored as strings:
+### Settings
 
-| Key | Default read in code | Note |
-| --- | --- | --- |
-| `textColor` | `#FFFFFF` | tile label colour |
-| `tileColor` | `rgba(255,255,255,0.4)` | tile background, stored as an `rgba()` string |
-| `fontFamily` | `'Roboto', sans-serif` | full CSS font stack |
-| `soundVolume` | `0.5`, or `0.2` on the audio path | `-1` means muted; see below |
-| `tilePlacement` | `top` | `top` or `middle` |
-| `tileBorderWidth` | `0px` | a CSS length, not a number |
-| `showClock` | `true` | compared as `!== "false"` |
-| `clockColor` | `#FFFFFF` | |
-| `clockFontFamily` | `'Climate Crisis', cursive` | |
-| `clockFormat` | `24` | `12` or `24` |
-| `showSeconds` | `false` | compared as `=== "true"` |
-| `clockSize` | `64` | parsed with `parseInt`, rendered with `+ "px"` |
-| `clockPosition` | `left` | `left` or `right` |
-| `atmosphereEffect` | `none` | see the effect list below |
-| `hasSeenWelcome` | unset | first-run flag |
-| `hasSeenPinInstructions` | unset | first-run flag, gates the changelog check |
-| `hasCustomBackground` | unset | marker written when a background reaches `chrome.storage.local` |
-| `homebase_changelog_version` | unset | last changelog version the user dismissed |
+All typed. Before v3 every one of them was a string, which is why the old code compared
+`showClock` against `"false"` and `tileBorderWidth` against `"0px"`.
 
-Two of these are read inconsistently. `soundVolume` has one default of `0.5` at the top of
-`main.js` and another of `0.2` on the audio-context path, and the slider treats any value
-below zero as muted while storing the negative number verbatim. `tileBorderWidth` is a
-string with a unit baked in, so it cannot be compared numerically and is instead matched
-against the literal `"0px"` to decide the folder icon border.
+| Key | Type | Default | Note |
+| --- | --- | --- | --- |
+| `textColor` | string | `#FFFFFF` | tile label colour |
+| `tileColor` | string | `rgba(255,255,255,0.4)` | an `rgba()` string |
+| `fontFamily` | string | `'Roboto', sans-serif` | a full CSS font stack |
+| `soundVolume` | number | `0.2` | -1 and below means muted |
+| `tilePlacement` | string | `top` | `top` or `middle` |
+| `tileBorderWidth` | number | `0` | pixels; `px` is added at render |
+| `showClock` | boolean | `true` | |
+| `clockColor` | string | `#FFFFFF` | |
+| `clockFontFamily` | string | `'Climate Crisis', cursive` | |
+| `clockFormat` | string | `24` | `12` or `24` |
+| `showSeconds` | boolean | `false` | |
+| `clockSize` | number | `64` | pixels |
+| `clockPosition` | string | `left` | `left` or `right` |
+| `atmosphereEffect` | string | `none` | see the effect list below |
 
-Settings reach `chrome.storage.local` in exactly one direction and only by accident: on
-import, every primitive settings key under 150 KB is mirrored there, and
-`resetAllSettingsOnlyBtn` removes a hardcoded list of them again. Nothing ever reads them
-back. Clearing browser data drops every setting while the tiles survive.
+Every default matches the value `style.css` already declares for the matching CSS variable,
+so writing them out explicitly renders the same as leaving them unset did before.
 
-### `sessionStorage`
+### Migration
 
-One key, `sessionCustomBackground`. Last resort when a background image fits neither
-`chrome.storage.local` nor the 150 KB `localStorage` ceiling. `loadBackground()` reads it
-between the extension store and the `localStorage` copy.
+`state.js` builds v3 out of the pre-v3 keys the first time the page opens without one, and
+`persist.js` writes it once. Precedence repeats what the old load path did:
+
+- tiles: `chrome.storage.local`'s `tiles` when the array is non-empty, otherwise the
+  `localStorage` copy;
+- notes: `chrome.storage.local`'s `stickyNotes` whenever the key is present at all, even as
+  an empty array, otherwise the `localStorage` copy;
+- settings: `localStorage`, the only place they ever were.
+
+**The pre-v3 keys are not deleted.** They are the way back to an older build for one
+release. Nothing reads them again once v3 exists, so they are a snapshot as of the
+migration, not a live mirror.
 
 ## What leaves the browser
 
@@ -172,13 +189,12 @@ tile makes a request to Google unless every tile carries an explicit icon.
 
 A folder is a tile with `type: "folder"`; that field is the only discriminator. `colorHex`
 is optional and, when absent, the folder follows the global tile colour. Folders do not
-nest: the drag handlers refuse a folder dropped onto a folder, and the document-level drop
-handler shows an alert for a folder dragged out of a folder.
+nest: the store refuses a folder moved into a folder, and dragging one out of a folder is
+rejected with a message.
 
-Tiles and folders share one flat array, `links` in `main.js`, persisted as `tiles`.
-Identity is positional. Every operation is an index into that array, and an open folder is
-tracked as `activeFolder = { folder, index }`, which has to be re-derived with
-`links.indexOf(...)` whenever an insertion shifts the array.
+Tiles and folders share one array and identity is positional, so a tile is addressed by
+**path**: `[i]` at the top level, `[folderIndex, i]` inside a folder. Before v3 those two
+cases were two separate sets of drag handlers and a pair of module-level cursors.
 
 ### Sticky note
 
@@ -199,83 +215,80 @@ tracked as `activeFolder = { folder, index }`, which has to be re-derived with
 ```
 
 `content` is raw HTML produced by `document.execCommand` on a `contenteditable`, and it is
-written back into the DOM through `DOMParser` rather than `innerHTML`. Colours are stored
-per note. Position is absolute viewport pixels, so notes do not follow a window resize.
+written back into the DOM through `DOMParser` rather than `innerHTML`. Position is absolute
+viewport pixels, so notes do not follow a window resize.
 
-New notes cycle through five paper colours based on the previous note's colour, appear at
-the last right-click position, and are capped at 15 per page.
+New notes cycle through five paper colours, appear at the last right-click position, and are
+capped at 15 per page.
+
+## The store
+
+`js/store.js` is every operation the page performs, as functions that take a state and
+return a new one. No DOM, no browser API, no persistence:
+
+```
+addTile      updateTile   replaceTile   removeTile   moveTile
+createFolder moveIntoFolder renameFolder setFolderColor clearFolderColors
+addNote      updateNote   removeNote
+getSettings  setSettings  resetSettings
+exportState  importState
+```
+
+`js/app.js` holds the one live state and a `commit` that replaces it, tells the modules to
+redraw, and persists. `commit(next, {silent: true})` skips the redraw for a change the
+caller has already drawn; a sticky note being typed into needs that, because rebuilding the
+note would take the caret with it.
 
 ## Export and import
 
-`main.js` writes three shapes, all tagged `version: 2` and distinguished by `type`. Import
-switches on `type`, and rejects a file with no `type` or no `version`.
-
-**`type: "full"`**, from `HomeBase_FullBackup.json`:
+Three shapes, all tagged `version: 3` and distinguished by `type`.
 
 ```js
-{ version: 2, type: "full", tiles: [...], stickyNotes: [...], settings: { /* 15 keys */ } }
+{ version: 3, type: "full",     tiles, notes, settings, customBackground? }
+{ version: 3, type: "settings", settings, customBackground? }
+{ version: 3, type: "links",    tiles, notes }
 ```
 
-**`type: "settings"`**, from `HomeBase_Settings.json`. Note that the payload sits under
-`data`, not `settings`:
+`importState` reads v2 files as well, and reports which sections a file actually carried, so
+a settings-only backup cannot silently blank the tiles. v2 differs in three ways: it put a
+links backup's tiles under `data` and a settings backup's settings under `data`, it always
+called the notes `stickyNotes`, and it kept `customBackground` inside the settings block.
 
-```js
-{ version: 2, type: "settings", data: { /* the same 15 keys */ } }
-```
+Import ends in `location.reload()`.
 
-**`type: "links"`**, from `HomeBase_LinksAndNotes.json`. Here `data` is the tile array, and
-notes sit beside it at the top level:
+### The v2 export defect this replaced
 
-```js
-{ version: 2, type: "links", data: [ /* tiles */ ], stickyNotes: [...] }
-```
-
-The settings block in all three carries fifteen keys: the fourteen visible settings above
-plus `customBackground`. The four first-run and bookkeeping flags are not exported.
-
-Import always ends in `location.reload()`, which is what makes the freshly written state
-appear; nothing is applied to the running page beyond a preview of the background, the clock
-size and position, and the atmosphere effect.
-
-`customBackground` takes a separate path on both sides. On export it is read from
-`chrome.storage.local` with a `localStorage` fallback; on import it goes through
-`persistCustomBackground()`, which resizes anything over 150 KB to at most 1920x1080 JPEG at
-quality 0.8, tries `chrome.storage.local`, then `localStorage`, then `sessionStorage`, and
-warns the user when it lands in the last one.
-
-### Known defect in the full export
-
-`exportAllSettingsAndLinksBtn` calls
+`exportAllSettingsAndLinksBtn` used to call
 
 ```js
 browser.storage.local.get(["tiles", "customBackground"])
 ```
 
-and then reads `result.stickyNotes`. That key was not requested, so the value is always
-`undefined` and the export falls through to the `localStorage` copy of the notes. It
-produces a correct file today only because `saveStickyNotes()` writes both stores on every
-change.
+and then read `result.stickyNotes`. That key was not requested, so the value was always
+`undefined` and the export fell through to the `localStorage` copy of the notes. It produced
+a correct file only because the old `saveStickyNotes()` wrote both stores on every change.
 
 ## Background effects
 
 `js/effects/EffectManager.js` owns a full-viewport `<canvas id="atmosphereCanvas">` and one
-`requestAnimationFrame` loop. `setEffect(name)` stops the running loop, clears the canvas
-and starts the next one.
+`requestAnimationFrame` loop. `setEffect(name)` stops the running loop, clears the canvas and
+starts the next one.
 
 Six effects draw: `snow`, `rain` (with splashes), `leaves`, `fireflies`, `stars`, `sakura`.
 `none` hides the canvas. Two names are dead ends kept for compatibility: `shootingstars` is
 rewritten to `stars`, and `dust` is accepted but hides the canvas like `none`. Fog and
 godrays were removed and the switch has no case for them.
 
-The selection lives in `localStorage.atmosphereEffect` and is applied at parse time in
-`main.js`, before `DOMContentLoaded`, to avoid a race with the button wiring.
+The effect is applied at boot from `settings.atmosphereEffect`. Picking one in the settings
+modal stores it straight away rather than waiting for Save, which is how it behaved before
+v3 and is the one setting that works that way.
 
 ## Rendering
 
-`renderTiles()` empties `#tilesContainer` and rebuilds every tile from scratch on every
-change, then appends the add button and calls `persist(false)`. There is no diffing and no
-virtual DOM: a rename, a reorder or a drag past the hover threshold all cost a full rebuild
-of the grid.
+`tiles.js` rebuilds the whole grid on every change. There is no diffing: a rename, a reorder
+or a drag past the hover threshold all cost a full rebuild. What changed with v3 is that the
+rebuild is driven by a state change rather than called by hand from eighteen places, and it
+no longer writes to storage as a side effect of drawing.
 
 Drag and drop is hand-rolled on the HTML5 drag events, with the drop target's geometry read
 per event to decide between two outcomes. The centre of a tile means "make a folder" or "add
@@ -284,43 +297,18 @@ each edge when the drop would create a folder, 10 percent when the target is alr
 folder. Reordering waits on a dwell timer, 200 ms over a tile and 300 ms over a folder, so a
 fast pass does not shuffle the grid.
 
-Drag state is nine module-level variables (`dragStartIndex`, `dragCurrentIndex`,
-`isDragging`, `dragOverStartTime`, `folderWasMoved`, `reorderOccurred`,
-`folderDragStartIndex`, `folderIsDragging`, `dragFromFolder`), reset across several
-handlers.
-
 Folder colour is applied twice over: once through the `--tile-bg-color` and
 `--tile-border-color` CSS variables for the global case, and once as inline styles on the
-tile, its four preview icons and the open bubble for a folder with `colorHex`. Because
-inline styles win, a folder that drops its override needs those styles cleared by hand,
-which is what `clearFolderInlineStylesForIndex()` and
-`clearAllFolderInlineStylesIfNoOverride()` do.
+tile, its four preview icons and the open bubble for a folder with `colorHex`. Inline styles
+win, so a folder that drops its override needs them cleared, which is what the `paint()`
+helper does when it is handed no colour.
 
 ## Settings modal
 
-Most settings apply live as a preview and persist only on Save. Three of them go through
-explicit pending variables, `pendingTilePlacement`, `pendingSoundVolume` and
-`pendingShowClock`, which Save reads and Cancel discards before re-reading the stored value.
-The rest of the previews write straight into module-level `saved*` variables, so Cancel has
-to reload each one from `localStorage` by hand. `closeEditModal()` does that, and repeats
-the volume and clock restoration twice in the same function.
+Edits run against a draft copy of the settings. Every control previews live by applying the
+draft, Save commits it through the store, and Cancel throws it away and reapplies what is
+stored. Before v3 this was three `pending` variables, a parallel set of `saved` variables,
+and a Cancel path that reread `localStorage` key by key and repeated itself twice in the
+same function.
 
-The dropdowns are not `<select>` elements. `setupCustomDropdown()` binds a div-based menu to
-a hidden input and `refreshCustomDropdown()` re-syncs the visible label when the modal
-reopens.
-
-## Duplication worth knowing about
-
-Reading the tree, these are the places where the same thing exists more than once:
-
-- `buildAddButton()` and `closeModal()` are each defined twice in `main.js`. The second
-  definition wins, so the first is dead. The two `buildAddButton()` bodies differ: the dead
-  one has no hover sound.
-- The document-level `drop` handler that moves a tile out of a folder is registered twice
-  with near-identical bodies. Both run. They differ in whether the emptied folder is removed
-  before or after `closeFolder()`.
-- Four `keydown` listeners each close some subset of the modals on Escape.
-- The context menu markup is built three times: once as the shared `ctxMenu` at
-  parse time, once inside `showContextMenu()`, and once inline in the container's
-  `contextmenu` handler, which also re-attaches listeners to the freshly written buttons.
-- The `browser` polyfill exists in `main.js` and again in `popup.js`.
+The dropdowns are not `<select>` elements: a div menu bound to a hidden input.

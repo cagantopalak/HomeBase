@@ -105,10 +105,20 @@ manifest-firefox.json    Firefox MV2 manifest
 newtab.html              The new tab page
 popup.html               The toolbar popup: add the current tab as a tile
 style.css                Styles for both pages
-js/main.js               Tiles, folders, settings, clock, export/import
+js/state.js              The v3 state shape and the migration off v2
+js/store.js              Every operation on tiles, folders, notes and settings
+js/persist.js            Loading and saving, the one place storage is touched
+js/app.js                The live state, colours, dialogs, sound
+js/tiles.js              Grid, folders, drag and drop
+js/settings.js           Settings modal, export and import
+js/clock.js              Clock
+js/wallpaper.js          Background image
+js/context-menu.js       Right click menus
 js/sticky-notes.js       Sticky notes
+js/main.js               Boot: loads the state and wires the page together
 js/popup.js              Popup logic
 js/background.js         Background script: swaps the toolbar icon with the OS theme
+js/browser-api.js        browser.* on top of Chrome's callback-style chrome.*
 js/mock-extension.js     chrome.* stand-in for running outside an extension
 js/effects/              Canvas background effects
 changelog/               Changelog fetch and modal
