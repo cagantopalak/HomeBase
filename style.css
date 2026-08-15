@@ -591,6 +591,14 @@ input[type="range"]:focus {
   flex-shrink: 0;
 }
 
+/* Explanatory line under a control, for a setting whose consequences are not obvious. */
+.setting-note {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0.65;
+}
+
 /* Slim, light-grey scrollbars for modal content and setting groups */
 /* WebKit (Chrome, Edge, Safari) */
 .modal .modal-content::-webkit-scrollbar,

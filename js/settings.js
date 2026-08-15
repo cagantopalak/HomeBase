@@ -146,6 +146,15 @@
       }
     }
 
+    // Sync settings live outside the state object, so they are read straight from storage
+    // rather than from the draft.
+    Persist.loadSync()
+      .then((sync) => {
+        if (el.syncEnabledToggle) el.syncEnabledToggle.checked = sync.enabled;
+        if (el.syncTokenInput) el.syncTokenInput.value = sync.token;
+      })
+      .catch((err) => console.error("sync settings read failed:", err && err.message));
+
     el.editModal.style.display = "flex";
     document.body.classList.add("modal-open");
     Menu.hideAll();
@@ -164,6 +173,17 @@
     draft = null;
     App.commit(next);
     applyDraft();
+
+    if (el.syncEnabledToggle) {
+      const enabled = el.syncEnabledToggle.checked;
+      const token = el.syncTokenInput ? el.syncTokenInput.value.trim() : "";
+      Persist.saveSync({ enabled, token })
+        // Restarting rather than reloading means turning sync on takes effect at once, and
+        // turning it off closes the event stream at once.
+        .then(() => root.HomeBaseSync && root.HomeBaseSync.restart())
+        .catch((err) => console.error("sync settings write failed:", err && err.message));
+    }
+
     el.editModal.style.display = "none";
     document.body.classList.remove("modal-open");
   }
@@ -448,6 +468,8 @@
       "exportAllLinksOnlyBtn",
       "cancelExportOptionsBtn",
       "resetColorsBtn",
+      "syncEnabledToggle",
+      "syncTokenInput",
     ].forEach((id) => {
       el[id] = document.getElementById(id);
     });

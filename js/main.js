@@ -229,6 +229,14 @@
     listenForPopup();
     watchTheme();
     showWelcomeModal();
+
+    // Reads its own switch and returns without touching the network when it is off, which
+    // is the default.
+    if (root.HomeBaseSync) {
+      root.HomeBaseSync.start().catch((err) =>
+        console.debug("sync did not start:", err && err.message)
+      );
+    }
   }
 
   if (document.readyState === "loading") {

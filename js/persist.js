@@ -167,6 +167,38 @@
     }
   }
 
+  /* ---------- SYNC SETTINGS ---------- */
+  // Deliberately not part of the state object. The bridge round-trips the state, so a
+  // machine that had sync off would hand its `enabled: false` to a machine that had it on,
+  // and the second machine would switch itself off.
+
+  const SYNC_KEY = "homebaseSync";
+  const SYNC_DEFAULTS = { enabled: false, token: "", rev: 0 };
+
+  async function loadSync() {
+    const extension = await readExtension(SYNC_KEY);
+    const stored =
+      extension[SYNC_KEY] || State.parseJson(readLocalStorage(SYNC_KEY), null) || {};
+    return {
+      enabled: stored.enabled === true,
+      token: typeof stored.token === "string" ? stored.token : "",
+      rev: Number.isInteger(stored.rev) && stored.rev >= 0 ? stored.rev : 0,
+    };
+  }
+
+  async function saveSync(patch) {
+    const next = Object.assign(await loadSync(), patch);
+    writeLocalStorage(SYNC_KEY, JSON.stringify(next));
+    if (hasExtensionStorage()) {
+      try {
+        await browser.storage.local.set({ [SYNC_KEY]: next });
+      } catch (err) {
+        console.error("sync settings write failed:", err && err.message);
+      }
+    }
+    return next;
+  }
+
   /* ---------- RESET ---------- */
 
   // Drops the v3 blob and the pre-v3 keys alike. Used by the reset actions, which the user
@@ -195,6 +227,9 @@
     clearAll,
     hasExtensionStorage,
     snapshotLocalStorage,
+    loadSync,
+    saveSync,
+    SYNC_DEFAULTS,
   };
 
   root.HomeBasePersist = api;
