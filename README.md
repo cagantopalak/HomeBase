@@ -15,7 +15,7 @@ What it does:
 Homepage: <https://homebase.birtik.co>
 
 All of a user's data is stored in the browser. There is no account and nothing is uploaded.
-Two requests do leave the browser, though, and they are listed below.
+Three requests do leave the browser, though, and they are listed below.
 
 ## What leaves the browser
 
@@ -23,6 +23,7 @@ Two requests do leave the browser, though, and they are listed below.
 | --- | --- | --- |
 | `https://www.google.com/s2/favicons?domain_url=<hostname>` | rendering a tile that has no explicit `icon` | the hostname of that tile |
 | `https://homebase.birtik.co/changelog.json?t=<timestamp>` | every new tab, once the first-run modals have been dismissed | nothing beyond the request itself |
+| `http://127.0.0.1:8787` | only when the optional sync below is switched on | the state, and only to this machine |
 
 The favicon request is per tile and per render, so a grid of tiles added by hand tells Google
 which sites are on it. Adding a tile from the toolbar popup fills in the icon from the tab,
@@ -73,6 +74,21 @@ Two limits apply under `file://`:
 - The changelog check in `changelog/updater.js` fetches
   `https://homebase.birtik.co/changelog.json` and fails silently offline.
 
+## Sync with a local bridge
+
+Optional and off by default. `bridge/` is a small Node server that keeps the extension's
+state in `~/.homebase/state.json`, so something outside the browser can read and write it,
+and so two open tabs stay in step.
+
+```sh
+node bridge/server.js
+```
+
+It listens on `http://127.0.0.1:8787` only, requires a token on every request, and answers
+CORS preflights for extension origins only. Turn it on under Settings, Sync, and paste the
+token the bridge printed. While the switch is off the extension makes no request to it at
+all. `bridge/README.md` covers the endpoints, the conflict rule and the threat model.
+
 ## Version numbers
 
 Three files carry the version and are kept equal:
@@ -115,6 +131,7 @@ js/clock.js              Clock
 js/wallpaper.js          Background image
 js/context-menu.js       Right click menus
 js/sticky-notes.js       Sticky notes
+js/sync.js               Talks to the local bridge, off unless switched on
 js/main.js               Boot: loads the state and wires the page together
 js/popup.js              Popup logic
 js/background.js         Background script: swaps the toolbar icon with the OS theme
@@ -123,6 +140,7 @@ js/mock-extension.js     chrome.* stand-in for running outside an extension
 js/effects/              Canvas background effects
 changelog/               Changelog fetch and modal
 icons/                   Toolbar and store icons
+bridge/                  Optional Node server holding the state outside the browser
 ```
 
 `ARCHITECTURE.md` describes how these fit together, where each piece of state lives and what

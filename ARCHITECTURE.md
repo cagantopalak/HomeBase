@@ -28,6 +28,7 @@ the order they are listed.
 | `js/context-menu.js` | deferred | menus |
 | `js/tiles.js` | deferred | grid, folders, drag and drop |
 | `js/settings.js` | deferred | settings modal, export and import |
+| `js/sync.js` | deferred | the local bridge, off by default |
 | `js/sticky-notes.js` | deferred | notes |
 | `changelog/updater.js` | deferred | independent of everything above |
 | `js/main.js` | deferred | boot |
@@ -148,7 +149,7 @@ migration, not a live mirror.
 
 ## What leaves the browser
 
-Two requests, both by default.
+Three requests, and only the first two exist by default.
 
 **Tile favicons.** A tile with no `icon` falls back to
 `https://www.google.com/s2/favicons?sz=64&domain_url=<hostname>`, so drawing the grid tells
@@ -163,11 +164,13 @@ cache buster and the lack of any other gate mean one request per new tab. The re
 compared against `homebase_changelog_version` in `localStorage` to decide whether to show
 the modal.
 
+**The sync bridge**, when it is switched on, to `127.0.0.1` only.
+
 The published privacy policy at `homebase.birtik.co/privacy/` says data "is stored only on
 your local device" with "no external transmission unless users enable optional features".
-Neither request above is local or optional, so the policy and the code do not currently
-agree. Nothing here changes that; it is recorded so the next person does not have to
-rediscover it.
+The sync bridge fits that sentence. The first two requests do not: neither is local, and
+neither is optional. Nothing here changes that; it is recorded so the next person does not
+have to rediscover it.
 
 ## Data model
 
@@ -302,6 +305,59 @@ Folder colour is applied twice over: once through the `--tile-bg-color` and
 tile, its four preview icons and the open bubble for a folder with `colorHex`. Inline styles
 win, so a folder that drops its override needs them cleared, which is what the `paint()`
 helper does when it is handed no colour.
+
+## Sync
+
+`js/sync.js` and `bridge/` put the state somewhere outside the browser. Both are optional
+and the switch is off by default: while it is off, `sync.js` opens no socket, sends no
+request and registers no listener, so the page behaves exactly as it does with no bridge in
+the picture.
+
+The bridge is a Node server on `http://127.0.0.1:8787` holding `~/.homebase/state.json` as
+`{ rev, updatedAt, state }`, where `state` is the same v3 object the extension carries. It
+validates with `js/state.js`, the extension's own file, so the two cannot drift.
+
+When the switch is on, the page reads once at boot, writes on a 600 ms debounce after every
+change, and follows `GET /events` so a second tab sees the first one's edits.
+
+### Ordering
+
+Every write bumps `rev`. A `PUT` carrying the `rev` it last saw is accepted. A `PUT`
+carrying an older one is refused with `409` and the current record, because that writer has
+not caught up; the page applies what it gets back. Last writer wins, except for a writer
+that never saw what it would overwrite.
+
+### Why not native messaging
+
+Native messaging has the browser start the host process, while an MCP server is started by
+whatever wants to use it. One process cannot serve two owners of its stdio, so it would take
+a third daemon in between, plus a host manifest per browser and per operating system, a
+pinned extension id, the install warning that comes with the `nativeMessaging` permission,
+and a keepalive for the MV3 service worker.
+
+### Why a loopback port needs guarding
+
+Any page the user visits can send a request to `127.0.0.1`. CORS stops it reading the reply;
+it does not stop the write happening. Three things together close that:
+
+1. A token on every request. On anything that writes it must be the `X-HomeBase-Token`
+   header, and a custom header forces a preflight, so the write cannot happen unless the
+   preflight was answered first.
+2. The preflight is answered only for an extension `Origin`, so a page is refused before its
+   request is sent.
+3. The socket is bound to `127.0.0.1`.
+
+`GET /events` is the exception to the first: `EventSource` cannot set a header, so its token
+rides in the query string. It only reads, and it still has to pass the origin check.
+
+The sync switch, the token and the last-seen `rev` are stored under `homebaseSync`, outside
+the state object. If they rode inside it, a machine with sync off would hand its `enabled:
+false` to a machine with sync on, and the second would switch itself off.
+
+Both manifests name `http://127.0.0.1:8787/*` as a permitted host and add it to
+`connect-src`. Chrome MV3 wants the policy as an object under `extension_pages`; Firefox MV2
+wants a plain string. The port is fixed rather than configurable because a manifest cannot
+name a port the user picks later.
 
 ## Settings modal
 
