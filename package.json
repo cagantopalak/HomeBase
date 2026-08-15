@@ -1,5 +1,5 @@
 {
-  "dependencies": {
-    "cors": "^2.8.6"
-  }
+  "name": "homebase",
+  "private": true,
+  "description": "HomeBase browser extension. No build step and no runtime dependencies; the files in this repo are loaded as-is."
 }
