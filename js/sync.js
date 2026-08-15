@@ -56,6 +56,17 @@
     } finally {
       applyingRemote = false;
     }
+
+    // The background travels beside the state rather than inside it, and only inwards: a
+    // tool outside the browser can set one, and the page applies it. The page never pushes
+    // its own, because it is a data URL of up to a few hundred KB and every tile drag would
+    // carry it.
+    if (record.background && root.HomeBaseWallpaper) {
+      root.HomeBaseWallpaper.set(record.background).catch((err) =>
+        console.debug("[homebase] background from the bridge was not applied:", err && err.message)
+      );
+    }
+
     config.rev = record.rev;
     Persist.saveSync({ rev: record.rev });
     return true;

@@ -200,7 +200,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    const record = store.write(body.state, body.updatedAt);
+    const record = store.write(body.state, body.updatedAt, body.background);
     broadcast(record);
     send(res, 200, record, replyOrigin);
     return;
@@ -214,31 +214,47 @@ const server = http.createServer(async (req, res) => {
   send(res, 404, { error: "not found" }, replyOrigin);
 });
 
-server.listen(PORT, "127.0.0.1", () => {
-  console.log(`[homebase] bridge listening on http://127.0.0.1:${PORT}`);
-  console.log(`[homebase] state and config in ${HOME}`);
-  if (config.created) {
-    console.log("");
-    console.log("[homebase] a token was generated. Paste it into the extension:");
-    console.log("[homebase] new tab, right click the background, Settings, Sync.");
-    console.log("");
-    console.log(`    ${config.token}`);
-    console.log("");
-  }
-  if (config.allowedOrigins.length === 0) {
-    console.log(
-      "[homebase] any extension origin is accepted. To pin it to yours, put its id in"
-    );
-    console.log('[homebase] allowedOrigins in config.json, as "chrome-extension://<id>".');
-  }
-});
+// Writing from inside this process, for instance from the MCP server that hosts the bridge
+// rather than talking to it over HTTP. Goes through the same store and the same broadcast,
+// so an open tab hears about it either way.
+function writeState(state, background) {
+  const record = store.write(state, undefined, background);
+  broadcast(record);
+  return record;
+}
 
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error(`[homebase] port ${PORT} is already in use. Another bridge is running.`);
-    process.exit(1);
-  }
-  throw err;
-});
+// `log` goes to stderr rather than stdout: when the MCP server hosts the bridge, stdout is
+// the JSON-RPC channel and anything else written there corrupts it.
+function listen(log = console.error) {
+  return new Promise((resolve, reject) => {
+    server.once("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        log(`[homebase] port ${PORT} is already in use. Another bridge is running.`);
+      }
+      reject(err);
+    });
+    server.listen(PORT, "127.0.0.1", () => {
+      log(`[homebase] bridge listening on http://127.0.0.1:${PORT}`);
+      log(`[homebase] state and config in ${HOME}`);
+      if (config.created) {
+        log("");
+        log("[homebase] a token was generated. Paste it into the extension:");
+        log("[homebase] new tab, right click the background, Settings, Sync.");
+        log("");
+        log(`    ${config.token}`);
+        log("");
+      }
+      if (config.allowedOrigins.length === 0) {
+        log("[homebase] any extension origin is accepted. To pin it to yours, put its id in");
+        log('[homebase] allowedOrigins in config.json, as "chrome-extension://<id>".');
+      }
+      resolve(server);
+    });
+  });
+}
 
-module.exports = { server };
+module.exports = { server, listen, writeState, readState: store.read, config, PORT };
+
+if (require.main === module) {
+  listen(console.log).catch(() => process.exit(1));
+}
