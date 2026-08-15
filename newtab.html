@@ -917,9 +917,23 @@
       </div>
     </div>
 
-    <script src="js/mock-extension.js?v=2"></script>
+    <!-- These two run as they are parsed: the chrome.* stand-in and the browser.* wrapper
+         have to exist before any deferred script reads storage. -->
+    <script src="js/mock-extension.js"></script>
+    <script src="js/browser-api.js"></script>
+
+    <!-- Deferred scripts run in order, which is what each of these relies on. -->
+    <script src="js/state.js" defer></script>
+    <script src="js/store.js" defer></script>
+    <script src="js/persist.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/wallpaper.js" defer></script>
+    <script src="js/clock.js" defer></script>
+    <script src="js/context-menu.js" defer></script>
+    <script src="js/tiles.js" defer></script>
+    <script src="js/settings.js" defer></script>
     <script src="js/sticky-notes.js" defer></script>
     <script src="changelog/updater.js" defer></script>
-    <script src="js/main.js?v=2" defer></script>
+    <script src="js/main.js" defer></script>
   </body>
 </html>
