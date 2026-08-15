@@ -359,6 +359,44 @@ Both manifests name `http://127.0.0.1:8787/*` as a permitted host and add it to
 wants a plain string. The port is fixed rather than configurable because a manifest cannot
 name a port the user picks later.
 
+## MCP
+
+`mcp/server.js` speaks MCP over stdio and hosts the bridge in the same process, so one
+command gives both the tools and the endpoint the extension talks to. If a bridge is already
+listening, it goes through that one over HTTP instead of opening a second, so the state file
+has one writer.
+
+stdout carries JSON-RPC and nothing else. The bridge's own logging is handed a writer that
+goes to stderr, which is why `listen()` takes one.
+
+The sixteen tools are thin wrappers over `js/store.js`: read the record, apply a store
+function, write it back through the bridge, which broadcasts. The store being free of the
+DOM is what makes that possible; before v3 every one of these operations only existed inside
+a drag handler.
+
+### What a tool is not allowed to write
+
+The new tab page is the surface the user clicks most, and anything reaching these tools may
+have come from text the model was asked to read.
+
+- A tile's URL must be `http` or `https`. A tile is navigated to when it is clicked, so
+  `javascript:`, `data:` and `file:` are all refused.
+- An icon or a background may also be a `data:image/...` URL. Those are rendered as images
+  and never navigated to, and an inline image is the form the extension already stores a
+  chosen background in. `data:text/html` is refused.
+- `homebase_import` replaces everything and cannot be undone, so it refuses unless it is
+  called with `confirm: true`.
+- `HOMEBASE_MCP_READONLY=1` makes every write tool refuse. They stay listed, with the reason
+  in the description.
+
+### The background over the bridge
+
+`homebase_set_background` needs to reach a setting the extension keeps outside its state
+object, so the bridge record carries `background` beside `state`. It travels inwards only: a
+tool sets one and the page applies it, and the page never pushes its own, because it is a
+data URL of up to a few hundred KB and every tile drag would carry it. A `PUT` that leaves
+the field out keeps whatever is stored, which is what the extension's own writes do.
+
 ## Settings modal
 
 Edits run against a draft copy of the settings. Every control previews live by applying the

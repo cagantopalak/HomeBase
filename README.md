@@ -89,6 +89,19 @@ CORS preflights for extension origins only. Turn it on under Settings, Sync, and
 token the bridge printed. While the switch is off the extension makes no request to it at
 all. `bridge/README.md` covers the endpoints, the conflict rule and the threat model.
 
+## Reading and changing it from an MCP client
+
+Also optional. `mcp/` exposes sixteen tools over MCP for listing, adding, moving and editing
+tiles, folders, notes and settings. It hosts the bridge itself, so one command gives both.
+
+```sh
+claude mcp add homebase -- node /absolute/path/to/HomeBase/mcp/server.js
+```
+
+`HOMEBASE_MCP_READONLY=1` turns off every write tool. A tile's URL must be `http` or
+`https`, and importing a backup will not run without an explicit confirmation.
+`mcp/README.md` has the tool list and the rest of the rules.
+
 ## Version numbers
 
 Three files carry the version and are kept equal:
@@ -141,6 +154,7 @@ js/effects/              Canvas background effects
 changelog/               Changelog fetch and modal
 icons/                   Toolbar and store icons
 bridge/                  Optional Node server holding the state outside the browser
+mcp/                     Optional MCP server, sixteen tools over the bridge
 ```
 
 `ARCHITECTURE.md` describes how these fit together, where each piece of state lives and what
