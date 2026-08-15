@@ -1,0 +1,13 @@
+node_modules/
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Packaged extension builds
+*.zip
+*.xpi
+*.crx
